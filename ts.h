@@ -25,15 +25,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-/* This is the structure to store each of time series
- * records.
- * timestamp is the number of seconds measuring from
- * 1st January 1970, without taking accound the
- * time zone. timestamp type is long long that is
- * 64-bit integer for the majority of architecures.
- * Futurely when time_t type became 64-bit we will
- * migrate easely the timestamp to time_t type
- */
 struct record {
     long long int timestamp;
     int null;
@@ -42,16 +33,11 @@ struct record {
 };
 
 struct timeseries {
-    struct record *data; /* Pointer to dynamic memory block. */
-    int nrecords;        /* Number of records in timeseries. */
-    size_t memblocksize; /* Size of dynamic memory block in bytes. */
+    struct record *data;
+    int nrecords;
+    size_t memblocksize;
 };
 
-/* Appends a record to the specified time series. Returns nonzero on error,
- * setting errstr to a static error message; the return value is an appropriate
- * errno. Returns the actual index after adding the record with
- * recindex.
- */
 extern int append_record(struct timeseries *ts, long long timestamp, int null,
     double value, const char *flags, int *recindex, char **errstr);
 
