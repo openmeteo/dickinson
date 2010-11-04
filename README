@@ -1,0 +1,20 @@
+dickinson shared library
+
+Copyright (C) 2010, National Technical University of Athens,
+Copyright (C) 1993-1999, 2002-2007, 2008 Free Software Foundation, Inc
+              (for the modified mktime.c unit).
+
+Fast and compact routines for time series storage in C for use
+with other software / language.
+
+Requirements:
+
+- GNU C compiler (gcc)
+- GNU make
+
+Installation instructions:
+
+make
+sudo make install
+
+This will copy the shared library to /usr/local/lib
