@@ -66,8 +66,6 @@ __weak_alias(strptime,_strptime)
 #define ALT_O			0x02
 #define	LEGAL_ALT(x)		{ if (alt_format & ~(x)) return NULL; }
 
-static char gmt[] = { "GMT" };
-/*static char utc[] = { "UTC" };*/
 /* RFC-822/RFC-2822 */
 static const char * const nast[5] = {
        "EST",    "CST",    "MST",    "PST",    "\0\0\0"
@@ -77,16 +75,13 @@ static const char * const nadt[5] = {
 };
 
 static const u_char *conv_num(const unsigned char *, int *, uint, uint);
-static const u_char *find_string(const u_char *, int *, const char * const *,
-	const char * const *, int);
-
 
 char *
 strptime(const char *buf, const char *fmt, struct tm *tm)
 {
 	unsigned char c;
-	const unsigned char *bp, *ep;
-	int alt_format, i, split_year = 0, neg = 0, offs;
+	const unsigned char *bp;
+	int alt_format, i, split_year = 0;
 	const char *new_fmt;
 
 	bp = (const u_char *)buf;
@@ -129,7 +124,7 @@ literal:
 			alt_format |= ALT_O;
 			goto again;
 
-                /* Operations with locale not supported. */
+                /* Operations with locale and time zones not supported. */
 		case 'c':	/* Date and time, using the locale's format. */
 		case 'r':	/* The time in 12-hour clock representation. */
 		case 'X':	/* The time, using the locale's format. */
@@ -140,6 +135,9 @@ literal:
 		case 'b':
 		case 'h':
 		case 'p':	/* The locale's equivalent of AM/PM. */
+		case 'Z':       /* Time-zone-related. */
+		case 'z':
+
                         return NULL;
 
 		/*
@@ -330,163 +328,6 @@ literal:
 			tm->tm_year = i;
 			continue;
 
-		case 'Z':
-			tzset();
-			if (strncmp((const char *)bp, gmt, 3) == 0) {
-				tm->tm_isdst = 0;
-#ifdef TM_GMTOFF
-				tm->TM_GMTOFF = 0;
-#endif
-#ifdef TM_ZONE
-				tm->TM_ZONE = gmt;
-#endif
-				bp += 3;
-			} else {
-				ep = find_string(bp, &i,
-					       	 (const char * const *)tzname,
-					       	  NULL, 2);
-				if (ep != NULL) {
-					tm->tm_isdst = i;
-#ifdef TM_GMTOFF
-					tm->TM_GMTOFF = -(timezone);
-#endif
-#ifdef TM_ZONE
-					tm->TM_ZONE = tzname[i];
-#endif
-				}
-				bp = ep;
-			}
-			continue;
-
-		case 'z':
-			/*
-			 * We recognize all ISO 8601 formats:
-			 * Z	= Zulu time/UTC
-			 * [+-]hhmm
-			 * [+-]hh:mm
-			 * [+-]hh
-			 * We recognize all RFC-822/RFC-2822 formats:
-			 * UT|GMT
-			 *          North American : UTC offsets
-			 * E[DS]T = Eastern : -4 | -5
-			 * C[DS]T = Central : -5 | -6
-			 * M[DS]T = Mountain: -6 | -7
-			 * P[DS]T = Pacific : -7 | -8
-			 *          Military
-			 * [A-IL-M] = -1 ... -9 (J not used)
-			 * [N-Y]  = +1 ... +12
-			 */
-			while (isspace(*bp))
-				bp++;
-
-			switch (*bp++) {
-			case 'G':
-				if (*bp++ != 'M')
-					return NULL;
-				/*FALLTHROUGH*/
-			case 'U':
-				if (*bp++ != 'T')
-					return NULL;
-				/*FALLTHROUGH*/
-			case 'Z':
-				tm->tm_isdst = 0;
-#ifdef TM_GMTOFF
-				tm->TM_GMTOFF = 0;
-#endif
-#ifdef TM_ZONE
-				tm->TM_ZONE = utc;
-#endif
-				continue;
-			case '+':
-				neg = 0;
-				break;
-			case '-':
-				neg = 1;
-				break;
-			default:
-				--bp;
-				ep = find_string(bp, &i, nast, NULL, 4);
-				if (ep != NULL) {
-#ifdef TM_GMTOFF
-					tm->TM_GMTOFF = -5 - i;
-#endif
-#ifdef TM_ZONE
-					tm->TM_ZONE = __UNCONST(nast[i]);
-#endif
-					bp = ep;
-					continue;
-				}
-				ep = find_string(bp, &i, nadt, NULL, 4);
-				if (ep != NULL) {
-					tm->tm_isdst = 1;
-#ifdef TM_GMTOFF
-					tm->TM_GMTOFF = -4 - i;
-#endif
-#ifdef TM_ZONE
-					tm->TM_ZONE = __UNCONST(nadt[i]);
-#endif
-					bp = ep;
-					continue;
-				}
-
-				if ((*bp >= 'A' && *bp <= 'I') ||
-				    (*bp >= 'L' && *bp <= 'Y')) {
-#ifdef TM_GMTOFF
-					/* Argh! No 'J'! */
-					if (*bp >= 'A' && *bp <= 'I')
-						tm->TM_GMTOFF =
-						    ('A' - 1) - (int)*bp;
-					else if (*bp >= 'L' && *bp <= 'M')
-						tm->TM_GMTOFF = 'A' - (int)*bp;
-					else if (*bp >= 'N' && *bp <= 'Y')
-						tm->TM_GMTOFF = (int)*bp - 'M';
-#endif
-#ifdef TM_ZONE
-					tm->TM_ZONE = NULL; /* XXX */
-#endif
-					bp++;
-					continue;
-				}
-				return NULL;
-			}
-			offs = 0;
-			for (i = 0; i < 4; ) {
-				if (isdigit(*bp)) {
-					offs = offs * 10 + (*bp++ - '0');
-					i++;
-					continue;
-				}
-				if (i == 2 && *bp == ':') {
-					bp++;
-					continue;
-				}
-				break;
-			}
-			switch (i) {
-			case 2:
-				offs *= 100;
-				break;
-			case 4:
-				i = offs % 100;
-				if (i >= 60)
-					return NULL;
-				/* Convert minutes into decimal */
-				offs = (offs / 100) * 100 + (i * 50) / 30;
-				break;
-			default:
-				return NULL;
-			}
-			if (neg)
-				offs = -offs;
-			tm->tm_isdst = 0;	/* XXX */
-#ifdef TM_GMTOFF
-			tm->TM_GMTOFF = offs;
-#endif
-#ifdef TM_ZONE
-			tm->TM_ZONE = NULL;	/* XXX */
-#endif
-			continue;
-
 		/*
 		 * Miscellaneous conversions.
 		 */
@@ -532,26 +373,4 @@ conv_num(const unsigned char *buf, int *dest, uint llim, uint ulim)
 
 	*dest = result;
 	return buf;
-}
-
-static const u_char *
-find_string(const u_char *bp, int *tgt, const char * const *n1,
-		const char * const *n2, int c)
-{
-	int i;
-	unsigned int len;
-
-	/* check full name - then abbreviated ones */
-	for (; n1 != NULL; n1 = n2, n2 = NULL) {
-		for (i = 0; i < c; i++, n1++) {
-			len = strlen(*n1);
-			if (strncasecmp(*n1, (const char *)bp, len) == 0) {
-				*tgt = i;
-				return bp + len;
-			}
-		}
-	}
-
-	/* Nothing matched */
-	return NULL;
 }
