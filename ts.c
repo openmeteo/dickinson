@@ -388,14 +388,14 @@ int ts_writeline(char **line, struct timeseries *ts, int index,
 
     igmtime(r->timestamp, &timestamp);
     if(!strftime(datestring,40,"%Y-%m-%d %H:%M",&timestamp)) {
-        retval = ENOTSUP;
+        retval = ERANGE;
         *errstr = "Internal error in ts_writefile (1)";
         goto END;
     }
     if(r->null)
         *valuestring = '\0';
     else if(snprintf(valuestring, 40, vformatstr, r->value) >= 40) {
-        retval = ENOTSUP;
+        retval = ERANGE;
         *errstr = "Internal error in ts_writefile (2)";
         goto END;
     }
