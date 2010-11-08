@@ -14,9 +14,10 @@
  * GNU General Public License for more details.
  */
 
-#include <string.h>
 #include <stdlib.h>
 #include <assert.h>
+#include <string.h>
+#include "strings.h"
 #include "csv.h"
 
 /* Starting with the first character after the initial quote, find_end_quote
