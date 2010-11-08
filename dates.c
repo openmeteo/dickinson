@@ -20,6 +20,7 @@
 #include <stdlib.h>
 #include "dates.h"
 #include "mktime_mod.h"
+extern char *strptime(const char *buf, const char *fmt, struct tm *tm);
 
 static int ydays[][12] = { {0,31,59,90,120,151,181,212,243,273,304,334},
                            {0,31,60,91,121,152,182,213,244,274,305,335}};
