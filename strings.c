@@ -34,3 +34,12 @@ char *strip(char *s)
 
     return s;
 }
+
+char *strdup(const char *s)
+{
+    char *result;
+
+    if ((result = malloc(strlen(s)+1))==NULL)
+        return NULL;
+    return strcpy(result, s);
+}
