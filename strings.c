@@ -35,6 +35,8 @@ char *strip(char *s)
     return s;
 }
 
+#ifndef HAVE_STRDUP
+
 char *strdup(const char *s)
 {
     char *result;
@@ -43,3 +45,5 @@ char *strdup(const char *s)
         return NULL;
     return strcpy(result, s);
 }
+
+#endif

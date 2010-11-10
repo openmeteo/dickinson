@@ -23,7 +23,7 @@ extern char *strip(char *s);
 
 /* man strdup. The function does not exist in Windows and therefore it is
  * re-implemented here.
- */
 extern char *strdup(const char *s);
+ */
 
 #endif /* _STRINGS_H */
