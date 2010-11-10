@@ -3,4 +3,5 @@ AM_INIT_AUTOMAKE([-Wall -Werror foreign])
 AC_PROG_CC
 AC_PROG_LIBTOOL
 AC_CONFIG_FILES([Makefile])
+AC_CHECK_FUNCS([strdup strptime])
 AC_OUTPUT
