@@ -383,7 +383,7 @@ int ts_writeline(char **line, struct timeseries *ts, int index,
     int retval, snprintf_res;
     struct tm timestamp;
     char datestring[40], valuestring[40];
-    char outstr[256];
+    static char outstr[256];
     struct record *r = ts->data+index;
 
     igmtime(r->timestamp, &timestamp);
