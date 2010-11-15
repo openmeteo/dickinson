@@ -377,15 +377,26 @@ GENFAIL:
     return errno;
 }
 
-int ts_writeline(char **line, struct timeseries *ts, int index,
-    const char *vformatstr, char **errstr)
+int ts_writeline(char **line, struct timeseries *ts, int index, int precision,
+                                                                char **errstr)
 {
-    int retval, snprintf_res;
+    int retval;
     struct tm timestamp;
-    char datestring[40], valuestring[40];
+    char datestring[40], valuestring[40], fmtstring[10];
     static char outstr[256];
     struct record *r = ts->data+index;
 
+    strcpy(fmtstring, "%G");
+    if(precision != -9999) {
+        if(precision<0)
+            precision = 0;
+        if(precision>17) {
+            retval = ERANGE;
+            *errstr = "ts_writefile: precision may not be greater than 17";
+            goto END;
+        }
+        sprintf(fmtstring, "%%.%df", precision);
+    }
     igmtime(r->timestamp, &timestamp);
     if(!strftime(datestring,40,"%Y-%m-%d %H:%M",&timestamp)) {
         retval = ERANGE;
@@ -394,20 +405,19 @@ int ts_writeline(char **line, struct timeseries *ts, int index,
     }
     if(r->null)
         *valuestring = '\0';
-    else if(snprintf(valuestring, 40, vformatstr, r->value) >= 40) {
+    else if(sprintf(valuestring, fmtstring, r->value) >= 40) {
         retval = ERANGE;
         *errstr = "Internal error in ts_writefile (2)";
         goto END;
     }
-    snprintf_res = snprintf(outstr,256,"%s,%s,%s\r\n",datestring, valuestring, r->flags);
-    if(snprintf_res>255){
+    if(strlen(datestring)+strlen(valuestring)+strlen(r->flags)+4 > 255){
         retval = EINVAL;
-        *errstr = "I/O error, cannot output a line with more than 255 characters";
+        *errstr = "ts_writefile: line too long (more than 255 characters)";
         goto END;
     }
-    if(snprintf_res==-1){
+    if(sprintf(outstr,"%s,%s,%s\r\n",datestring, valuestring, r->flags) < 0) {
         retval = EINVAL;
-        *errstr = "I/O error, error in character encoding";
+        *errstr = "ts_writefile: sprintf error (make sure flags are ASCII)";
         goto END;
     }
     *line = outstr;

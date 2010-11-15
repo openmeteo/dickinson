@@ -58,6 +58,6 @@ extern int ts_readline(char *line, struct timeseries *ts, char **errstr);
 extern int merge(struct timeseries *ts1, struct timeseries *ts2, 
 char **errstr);
 extern int ts_writeline(char **line, struct timeseries *ts, int index,
-    const char *vformatstr, char **errstr);
+    int precision, char **errstr);
 
 #endif /* _TS_H */
