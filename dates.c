@@ -523,16 +523,16 @@ FAIL:
 
 void igmtime(long long gm_time, struct tm *tm)
 {
-    long long delta_days_1970;
-    long long aprox_year;
+    int delta_days_1970;
+    int aprox_year;
     long long curr_year_t;
     long long actual_delta;
     int year, seconds, month, curmdays; 
 
-    delta_days_1970 = gm_time / 86400;
-    aprox_year = 1970 + delta_days_1970 * 10000 / 3652425;
+    delta_days_1970 = (int)(gm_time / 86400);
+    aprox_year = 1970 + (int)(delta_days_1970 * 10000 / 3652425);
     aprox_year--;
-    while(1){
+    for(;;) {
         curr_year_t = ydhms_diffl(aprox_year-1900,0,0,0,0,70,0,0,0,0);
         if(curr_year_t>gm_time)
             break;
@@ -542,8 +542,8 @@ void igmtime(long long gm_time, struct tm *tm)
     year = aprox_year;
     tm->tm_year = year-1900;
     actual_delta = gm_time - curr_year_t;
-    tm->tm_yday = actual_delta / 86400;
-    seconds = actual_delta % 86400;
+    tm->tm_yday = (int)(actual_delta / 86400);
+    seconds = (int)(actual_delta % 86400);
     tm->tm_isdst = 0;
     tm->tm_hour = seconds / 3600;
     seconds = seconds - tm->tm_hour * 3600;
