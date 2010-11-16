@@ -76,9 +76,6 @@ libdickinson_la_LIBADD =
 am_libdickinson_la_OBJECTS = ts.lo strings.lo dates.lo csv.lo \
 	mktime_mod.lo
 libdickinson_la_OBJECTS = $(am_libdickinson_la_OBJECTS)
-libdickinson_la_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) \
-	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
-	$(libdickinson_la_LDFLAGS) $(LDFLAGS) -o $@
 DEFAULT_INCLUDES = -I.@am__isrc@
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__depfiles_maybe = depfiles
@@ -221,8 +218,7 @@ top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 lib_LTLIBRARIES = libdickinson.la
 libdickinson_la_SOURCES = ts.c strings.c dates.c csv.c mktime_mod.c
-libdickinson_la_LDFLAGS = -no-undefined
-include_HEADERS = ts.h strings.h dates.h csv.h mktime_mod.h
+include_HEADERS = ts.h strings.h dates.h csv.h mktime_mod.h platform.h
 all: all-am
 
 .SUFFIXES:
@@ -293,7 +289,7 @@ clean-libLTLIBRARIES:
 	  rm -f "$${dir}/so_locations"; \
 	done
 libdickinson.la: $(libdickinson_la_OBJECTS) $(libdickinson_la_DEPENDENCIES) 
-	$(libdickinson_la_LINK) -rpath $(libdir) $(libdickinson_la_OBJECTS) $(libdickinson_la_LIBADD) $(LIBS)
+	$(LINK) -rpath $(libdir) $(libdickinson_la_OBJECTS) $(libdickinson_la_LIBADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
