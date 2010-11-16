@@ -211,7 +211,7 @@ DLLEXPORT int delete_record(struct timeseries *ts, long long tm){
     return delete_item(ts, i);
 }
 
-DLLEXPORT void * ts_create()
+DLLEXPORT void * ts_create(void)
 {
     struct timeseries *ts;
 
