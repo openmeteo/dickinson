@@ -35,7 +35,7 @@ char *strip(char *s)
     return s;
 }
 
-#ifndef HAVE_STRDUP
+#if ! defined(HAVE_STRDUP) && ! defined(WIN32)
 
 char *strdup(const char *s)
 {
