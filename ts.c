@@ -25,6 +25,7 @@
 #include "dates.h"
 #include "ts.h"
 #include "mktime_mod.h"
+#include "platform.h"
 
 /* Makes sure that the data block allocated for the timeseries data is large
  * enough to hold the specified number of records. If not, it reallocs it.
@@ -46,7 +47,7 @@ static int check_block_size(struct timeseries *ts, int nrecords)
     return 0;
 }
 
-int set_item(struct timeseries *ts, int index, 
+DLLEXPORT int set_item(struct timeseries *ts, int index, 
     int null, double value, const char *flags, char **errstr)
 {
     struct record *r;
@@ -70,7 +71,7 @@ GENFAIL:
     return errno;
 }
 
-int append_record(struct timeseries *ts, long long timestamp, int null,
+DLLEXPORT int append_record(struct timeseries *ts, long long timestamp, int null,
     double value, const char *flags, int *recindex, char **errstr)
 {
     struct record *r;
@@ -97,7 +98,7 @@ GENFAIL:
     return errno;
 }
 
-int insert_record(struct timeseries *ts, long long timestamp, int null,
+DLLEXPORT int insert_record(struct timeseries *ts, long long timestamp, int null,
     double value, const char *flags, int *recindex, char **errstr)
 {
     struct record *r;
@@ -135,7 +136,7 @@ GENFAIL:
     return errno;
 }
 
-int get_next(struct timeseries *ts, long long tm)
+DLLEXPORT int get_next(struct timeseries *ts, long long tm)
 {
     int len, low, high, mid;
     long long diff;
@@ -165,7 +166,7 @@ int get_next(struct timeseries *ts, long long tm)
         return low;
 }
 
-int get_prev(struct timeseries *ts, long long tm)
+DLLEXPORT int get_prev(struct timeseries *ts, long long tm)
 {
     int i, len;
     len = ts_length(ts);
@@ -179,7 +180,7 @@ int get_prev(struct timeseries *ts, long long tm)
     return i;
 }
 
-int index_of(struct timeseries *ts, long long tm)
+DLLEXPORT int index_of(struct timeseries *ts, long long tm)
 {
     int i;
 
@@ -190,7 +191,7 @@ int index_of(struct timeseries *ts, long long tm)
         return -1;
 }
 
-int delete_item(struct timeseries *ts, int index){
+DLLEXPORT int delete_item(struct timeseries *ts, int index){
     if(!ts->nrecords) return -1;
     if(index>=ts->nrecords) return -1;
     free(ts->data[index].flags);
@@ -202,7 +203,7 @@ int delete_item(struct timeseries *ts, int index){
     return index;
 }
 
-int delete_record(struct timeseries *ts, long long tm){
+DLLEXPORT int delete_record(struct timeseries *ts, long long tm){
     int i;
 
     if(!ts->nrecords) return -1;
@@ -210,7 +211,7 @@ int delete_record(struct timeseries *ts, long long tm){
     return delete_item(ts, i);
 }
 
-void * ts_create()
+DLLEXPORT void * ts_create()
 {
     struct timeseries *ts;
 
@@ -222,7 +223,7 @@ void * ts_create()
     return ts;
 }
 
-void ts_free(struct timeseries *ts)
+DLLEXPORT void ts_free(struct timeseries *ts)
 {
     ts_clear(ts);
     free(ts->data);
@@ -230,12 +231,12 @@ void ts_free(struct timeseries *ts)
     free(ts);
 }
 
-int ts_length(struct timeseries *ts)
+DLLEXPORT int ts_length(struct timeseries *ts)
 {
     return ts->nrecords;
 }
 
-void ts_clear(struct timeseries *ts)
+DLLEXPORT void ts_clear(struct timeseries *ts)
 {
     int i;
 
@@ -246,12 +247,12 @@ void ts_clear(struct timeseries *ts)
     ts->nrecords = 0;
 }
 
-struct record get_item(struct timeseries *ts, int index)
+DLLEXPORT struct record get_item(struct timeseries *ts, int index)
 {
     return ts->data[index];
 }
 
-int ts_readline(char *line, struct timeseries *ts, char **errstr)
+DLLEXPORT int ts_readline(char *line, struct timeseries *ts, char **errstr)
 {
     char *b;
     int null;
@@ -302,7 +303,7 @@ INVSYNTAX:
     goto END;
 }
 
-int merge(struct timeseries *ts1, struct timeseries *ts2, char **errstr)
+DLLEXPORT int merge(struct timeseries *ts1, struct timeseries *ts2, char **errstr)
 {
     int i, i1, i2;
     struct record *r1;
@@ -377,7 +378,7 @@ GENFAIL:
     return errno;
 }
 
-int ts_writeline(char **line, struct timeseries *ts, int index, int precision,
+DLLEXPORT int ts_writeline(char **line, struct timeseries *ts, int index, int precision,
                                                                 char **errstr)
 {
     int retval;
