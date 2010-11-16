@@ -52,8 +52,7 @@ extern DLLEXPORT void * ts_create();
 extern DLLEXPORT void ts_free(struct timeseries *ts);
 extern DLLEXPORT int ts_length(struct timeseries *ts);
 extern DLLEXPORT void ts_clear(struct timeseries *ts);
-extern DLLEXPORT __declspec(dllexport) struct record get_item(
-                                            struct timeseries *ts, int index);
+extern DLLEXPORT struct record get_item(struct timeseries *ts, int index);
 extern DLLEXPORT int set_item(struct timeseries *ts, int index, 
     int null, double value, const char *flags, char **errstr);
 extern DLLEXPORT int ts_readline(char *line, struct timeseries *ts,
