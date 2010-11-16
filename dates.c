@@ -471,6 +471,15 @@ int tmcmp(struct tm *tm1, struct tm *tm2)
         return 0;
 }
 
+/*
+ * The following function recomputes tm_yday from the other members. It is used
+ * because strptime does not always set those (depends on strptime
+ * implementation).
+ */
+static void fix_tm(struct tm *tm) {
+    tm->tm_yday = year_days(tm->tm_mon, tm->tm_year) + tm->tm_mday - 1;
+}
+
 int parsedatestring(const char *s, struct tm *tm, char **errmsg)
 {
     char *time_designator;
@@ -504,6 +513,7 @@ int parsedatestring(const char *s, struct tm *tm, char **errmsg)
     /* Convert string to broken time. */
     for (f = acceptedformats; **f!='\0'; ++f) {
         r = strptime(ls, *f, tm);
+        fix_tm(tm);
         if (r!=NULL && *r == '\0') break;
     }
     if (r==NULL || *r != '\0') {
