@@ -7,14 +7,34 @@ Copyright (C) 1993-1999, 2002-2007, 2008 Free Software Foundation, Inc
 Fast and compact routines for time series storage in C for use
 with other software / language.
 
-Requirements:
+Unix
+----
 
-- GNU C compiler (gcc)
-- GNU make
+    Requirements:
 
-Installation instructions:
+    - GNU C compiler (gcc)
+    - GNU make
 
-./configure
-make
-sudo make install
-sudo ldconfig
+    Installation instructions:
+
+    ./configure
+    make
+    sudo make install
+
+Windows
+-------
+
+    Requirements:
+
+    - Microsoft Visual C++ 2010 Express
+
+    Installation instructions:
+
+    - Start MS Visual C++
+    - Choose File, Open, Project/Solution
+    - Select the file Dickinson.vcxproj
+    - Right-click on the Dickinson project and select Build
+    - If it asks you, tell it where to save the "solution" file (we don't store
+      it, let it recreate it each time).
+    - When it finishes, copy Debug\Dickinson.dll somewhere where it can be
+      found, such as C:\Windows\System32.
