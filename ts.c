@@ -426,3 +426,13 @@ DLLEXPORT int ts_writeline(char **line, struct timeseries *ts, int index, int pr
 END:
     return retval;
 }
+
+DLLEXPORT int ts_identify_events(const struct timeseries **ts, int ntimeseries,
+    long_time_t start_date, long_time_t end_date, int reverse,
+    double start_threshold, double end_threshold,
+    int ntimeseries_start_threshold, int ntimeseries_end_threshold,
+    long_time_t time_separator,
+    long_time_t *start_dates, long_time_t *end_dates,
+    int *nevents, char **errstr)
+{
+}
