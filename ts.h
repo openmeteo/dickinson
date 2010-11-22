@@ -27,7 +27,7 @@
 #include "platform.h"
 #include "dates.h"
 
-struct record {
+struct ts_record {
     long_time_t timestamp;
     int null;
     double value;
@@ -35,34 +35,42 @@ struct record {
 };
 
 struct timeseries {
-    struct record *data; /* Dynamic mem block containing timeseries records */
+    struct ts_record *data; /* Dyn mem block containing timeseries records */
     int nrecords; /* Size of time series (number of records) */
     size_t memblocksize; /* Size of the dynamic memory block in bytes. */
 };
 
-extern DLLEXPORT int append_record(struct timeseries *ts, long_time_t timestamp,
-    int null, double value, const char *flags, int *recindex, char **errstr);
-extern DLLEXPORT int insert_record(struct timeseries *ts,
+extern DLLEXPORT int ts_append_record(struct timeseries *ts,
     long_time_t timestamp, int null, double value, const char *flags,
     int *recindex, char **errstr);
-extern DLLEXPORT int get_next(struct timeseries *ts, long_time_t tm);
-extern DLLEXPORT int get_prev(struct timeseries *ts, long_time_t tm);
-extern DLLEXPORT int index_of(struct timeseries *ts, long_time_t tm);
-extern DLLEXPORT int delete_record(struct timeseries *ts, long_time_t tm);
-extern DLLEXPORT int delete_item(struct timeseries *ts, int index);
-extern DLLEXPORT void * ts_create(void);
+extern DLLEXPORT int ts_insert_record(struct timeseries *ts,
+    long_time_t timestamp, int null, double value, const char *flags,
+    int *recindex, char **errstr);
+extern DLLEXPORT int ts_get_next(struct timeseries *ts, long_time_t tm);
+extern DLLEXPORT int ts_get_prev(struct timeseries *ts, long_time_t tm);
+extern DLLEXPORT int ts_index_of(struct timeseries *ts, long_time_t tm);
+extern DLLEXPORT int ts_delete_record(struct timeseries *ts, long_time_t tm);
+extern DLLEXPORT int ts_delete_item(struct timeseries *ts, int index);
+extern DLLEXPORT void *ts_create(void);
 extern DLLEXPORT void ts_free(struct timeseries *ts);
 extern DLLEXPORT int ts_length(struct timeseries *ts);
 extern DLLEXPORT void ts_clear(struct timeseries *ts);
-extern DLLEXPORT struct record get_item(struct timeseries *ts, int index);
-extern DLLEXPORT int set_item(struct timeseries *ts, int index, 
+extern DLLEXPORT struct ts_record ts_get_item(struct timeseries *ts, int index);
+extern DLLEXPORT int ts_set_item(struct timeseries *ts, int index, 
     int null, double value, const char *flags, char **errstr);
 extern DLLEXPORT int ts_readline(char *line, struct timeseries *ts,
                                                                 char **errstr);
-extern DLLEXPORT int merge(struct timeseries *ts1, struct timeseries *ts2, 
+extern DLLEXPORT int ts_merge(struct timeseries *ts1, struct timeseries *ts2, 
                                                                 char **errstr);
 extern DLLEXPORT int ts_writeline(char **line, struct timeseries *ts, int index,
     int precision, char **errstr);
-extern DLLEXPORT int ts_identify_events(const struct timeseries **ts, int ntimeseries, long_time_t start_date, long_time_t end_date, int reverse, double start_threshold, double end_threshold, int ntimeseries_start_threshold, int ntimeseries_end_threshold, long_time_t time_separator, long_time_t *start_dates, long_time_t *end_dates, int *nevents, char **errstr);
+extern DLLEXPORT int ts_identify_events(const struct timeseries **ts,
+    int ntimeseries,
+    long_time_t start_date, long_time_t end_date, int reverse,
+    double start_threshold, double end_threshold,
+    int ntimeseries_start_threshold, int ntimeseries_end_threshold,
+    long_time_t time_separator,
+    long_time_t *start_dates, long_time_t *end_dates,
+    int *nevents, char **errstr);
 
 #endif /* _TS_H */

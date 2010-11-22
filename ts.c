@@ -36,7 +36,7 @@ static int check_block_size(struct timeseries *ts, int nrecords)
     void *p;
     size_t s;
 
-    while(ts->memblocksize < nrecords*sizeof(struct record)) {
+    while(ts->memblocksize < nrecords*sizeof(struct ts_record)) {
         s = ts->memblocksize + CHUNKSIZE;
         p = realloc(ts->data, s);
         if(!p) return errno;
@@ -46,10 +46,10 @@ static int check_block_size(struct timeseries *ts, int nrecords)
     return 0;
 }
 
-DLLEXPORT int set_item(struct timeseries *ts, int index, 
+DLLEXPORT int ts_set_item(struct timeseries *ts, int index, 
     int null, double value, const char *flags, char **errstr)
 {
-    struct record *r;
+    struct ts_record *r;
     char *s;
 
     if(index<0 || index>=ts_length(ts)) {
@@ -70,10 +70,10 @@ GENFAIL:
     return errno;
 }
 
-DLLEXPORT int append_record(struct timeseries *ts, long_time_t timestamp,
+DLLEXPORT int ts_append_record(struct timeseries *ts, long_time_t timestamp,
     int null, double value, const char *flags, int *recindex, char **errstr)
 {
-    struct record *r;
+    struct ts_record *r;
     char *s;
     int i;
 
@@ -97,17 +97,17 @@ GENFAIL:
     return errno;
 }
 
-DLLEXPORT int insert_record(struct timeseries *ts, long_time_t timestamp, int null,
-    double value, const char *flags, int *recindex, char **errstr)
+DLLEXPORT int ts_insert_record(struct timeseries *ts, long_time_t timestamp,
+    int null, double value, const char *flags, int *recindex, char **errstr)
 {
-    struct record *r;
+    struct ts_record *r;
     char *s;
     int i;
     int next_item;
 
-    next_item = get_next(ts, timestamp);
+    next_item = ts_get_next(ts, timestamp);
     if(next_item==-1)
-        return append_record(ts, timestamp, null, value, flags, 
+        return ts_append_record(ts, timestamp, null, value, flags, 
                  recindex, errstr);
 
     if(ts->data[next_item].timestamp==timestamp){
@@ -119,7 +119,7 @@ DLLEXPORT int insert_record(struct timeseries *ts, long_time_t timestamp, int nu
     s = strdup(flags); if(!s) goto GENFAIL;
 
     memmove(ts->data+next_item+1, ts->data+next_item,
-            (ts->nrecords - next_item)*sizeof(struct record));
+            (ts->nrecords - next_item)*sizeof(struct ts_record));
 
     ts->nrecords++;
     r = ts->data + next_item;
@@ -135,7 +135,7 @@ GENFAIL:
     return errno;
 }
 
-DLLEXPORT int get_next(struct timeseries *ts, long_time_t tm)
+DLLEXPORT int ts_get_next(struct timeseries *ts, long_time_t tm)
 {
     int len, low, high, mid;
     long_time_t diff;
@@ -165,13 +165,13 @@ DLLEXPORT int get_next(struct timeseries *ts, long_time_t tm)
         return low;
 }
 
-DLLEXPORT int get_prev(struct timeseries *ts, long_time_t tm)
+DLLEXPORT int ts_get_prev(struct timeseries *ts, long_time_t tm)
 {
     int i, len;
     len = ts_length(ts);
     if(len==0 || tm < ts->data[0].timestamp)
         return -1;
-    i = get_next(ts, tm);
+    i = ts_get_next(ts, tm);
     if(i==-1)
         i = len-1;
     else if(tm!=ts->data[i].timestamp)
@@ -179,38 +179,38 @@ DLLEXPORT int get_prev(struct timeseries *ts, long_time_t tm)
     return i;
 }
 
-DLLEXPORT int index_of(struct timeseries *ts, long_time_t tm)
+DLLEXPORT int ts_index_of(struct timeseries *ts, long_time_t tm)
 {
     int i;
 
-    i = get_next(ts, tm);
+    i = ts_get_next(ts, tm);
     if(i>=0 && ts->data[i].timestamp==tm)
         return i;
     else
         return -1;
 }
 
-DLLEXPORT int delete_item(struct timeseries *ts, int index){
+DLLEXPORT int ts_delete_item(struct timeseries *ts, int index){
     if(!ts->nrecords) return -1;
     if(index>=ts->nrecords) return -1;
     free(ts->data[index].flags);
     ts->data[index].flags=NULL;
     if(index<ts->nrecords-1)
         memmove(ts->data+index, ts->data+index+1,
-            (ts->nrecords - index -1)*sizeof(struct record));
+            (ts->nrecords - index -1)*sizeof(struct ts_record));
     ts->nrecords -= 1;
     return index;
 }
 
-DLLEXPORT int delete_record(struct timeseries *ts, long_time_t tm){
+DLLEXPORT int ts_delete_record(struct timeseries *ts, long_time_t tm){
     int i;
 
     if(!ts->nrecords) return -1;
-    if((i = index_of(ts, tm))<0) return -1;
-    return delete_item(ts, i);
+    if((i = ts_index_of(ts, tm))<0) return -1;
+    return ts_delete_item(ts, i);
 }
 
-DLLEXPORT void * ts_create(void)
+DLLEXPORT void *ts_create(void)
 {
     struct timeseries *ts;
 
@@ -246,7 +246,7 @@ DLLEXPORT void ts_clear(struct timeseries *ts)
     ts->nrecords = 0;
 }
 
-DLLEXPORT struct record get_item(struct timeseries *ts, int index)
+DLLEXPORT struct ts_record ts_get_item(struct timeseries *ts, int index)
 {
     return ts->data[index];
 }
@@ -283,11 +283,11 @@ DLLEXPORT int ts_readline(char *line, struct timeseries *ts, char **errstr)
     if(p && csvtok(&b)) goto INVSYNTAX;
     
     /* Add record to array. */
-    index = index_of(ts, timestamp);
+    index = ts_index_of(ts, timestamp);
     if(index<0)
-        retval = insert_record(ts, timestamp, null, value, flags, &index, errstr);
+        retval = ts_insert_record(ts, timestamp, null, value, flags, &index, errstr);
     else
-        retval = set_item(ts, index, null, value, flags, errstr);
+        retval = ts_set_item(ts, index, null, value, flags, errstr);
 
     if(retval) goto END;
 
@@ -302,11 +302,12 @@ INVSYNTAX:
     goto END;
 }
 
-DLLEXPORT int merge(struct timeseries *ts1, struct timeseries *ts2, char **errstr)
+DLLEXPORT int ts_merge(struct timeseries *ts1, struct timeseries *ts2,
+                            char **errstr)
 {
     int i, i1, i2;
-    struct record *r1;
-    struct record r2;
+    struct ts_record *r1;
+    struct ts_record r2;
     char *s;
 
     /* Nothing to do if ts2 empty. */
@@ -332,11 +333,11 @@ DLLEXPORT int merge(struct timeseries *ts1, struct timeseries *ts2, char **errst
     }
 
     /* Find record i1 before which first ts2 record will be inserted. */
-    if((i1 = get_next(ts1, ts2->data[0].timestamp))<0)
+    if((i1 = ts_get_next(ts1, ts2->data[0].timestamp))<0)
         i1 = ts1->nrecords;
 
     /* Find record i2 before which last ts2 record will be inserted. */
-    if((i2 = get_next(ts1, ts2->data[ts2->nrecords-1].timestamp))<0)
+    if((i2 = ts_get_next(ts1, ts2->data[ts2->nrecords-1].timestamp))<0)
         i2 = ts1->nrecords;
 
     /* All ts2 should go in the same place. */
@@ -357,7 +358,7 @@ DLLEXPORT int merge(struct timeseries *ts1, struct timeseries *ts2, char **errst
     /* OK, proceed with the merging. */
     if(check_block_size(ts1, ts1->nrecords + ts2->nrecords)) goto GENFAIL;
     memmove(ts1->data + i1 + ts2->nrecords, ts1->data + i1,
-            (ts1->nrecords - i1) * sizeof(struct record));
+            (ts1->nrecords - i1) * sizeof(struct ts_record));
     for(i=i1;i<i1+ts2->nrecords;++i)
     {
         r1 = &ts1->data[i];
@@ -384,7 +385,7 @@ DLLEXPORT int ts_writeline(char **line, struct timeseries *ts, int index, int pr
     struct tm timestamp;
     char datestring[40], valuestring[40], fmtstring[10];
     static char outstr[256];
-    struct record *r = ts->data+index;
+    struct ts_record *r = ts->data+index;
 
     strcpy(fmtstring, "%G");
     if(precision != -9999) {
