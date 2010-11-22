@@ -73,8 +73,7 @@ am__base_list = \
 am__installdirs = "$(DESTDIR)$(libdir)" "$(DESTDIR)$(includedir)"
 LTLIBRARIES = $(lib_LTLIBRARIES)
 libdickinson_la_LIBADD =
-am_libdickinson_la_OBJECTS = ts.lo strings.lo dates.lo csv.lo \
-	mktime_mod.lo
+am_libdickinson_la_OBJECTS = ts.lo strings.lo dates.lo csv.lo
 libdickinson_la_OBJECTS = $(am_libdickinson_la_OBJECTS)
 DEFAULT_INCLUDES = -I.@am__isrc@
 depcomp = $(SHELL) $(top_srcdir)/depcomp
@@ -217,8 +216,8 @@ top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 lib_LTLIBRARIES = libdickinson.la
-libdickinson_la_SOURCES = ts.c strings.c dates.c csv.c mktime_mod.c
-include_HEADERS = ts.h strings.h dates.h csv.h mktime_mod.h platform.h
+libdickinson_la_SOURCES = ts.c strings.c dates.c csv.c
+include_HEADERS = ts.h strings.h dates.h csv.h platform.h
 all: all-am
 
 .SUFFIXES:
@@ -299,7 +298,6 @@ distclean-compile:
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/csv.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/dates.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mktime_mod.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/strings.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ts.Plo@am__quote@
 
