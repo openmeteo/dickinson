@@ -67,7 +67,6 @@
   <ItemGroup>
     <ClCompile Include="csv.c" />
     <ClCompile Include="dates.c" />
-    <ClCompile Include="mktime_mod.c" />
     <ClCompile Include="strings.c" />
     <ClCompile Include="ts.c">
       <DisableLanguageExtensions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</DisableLanguageExtensions>
@@ -76,7 +75,6 @@
   <ItemGroup>
     <ClInclude Include="csv.h" />
     <ClInclude Include="dates.h" />
-    <ClInclude Include="mktime_mod.h" />
     <ClInclude Include="strings.h" />
     <ClInclude Include="ts.h" />
   </ItemGroup>

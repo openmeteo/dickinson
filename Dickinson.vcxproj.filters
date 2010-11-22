@@ -21,9 +21,6 @@
     <ClCompile Include="dates.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="mktime_mod.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="strings.c">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -36,9 +33,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="dates.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="mktime_mod.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="strings.h">
