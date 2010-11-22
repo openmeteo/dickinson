@@ -45,7 +45,7 @@ extern DLLEXPORT int ts_append_record(struct timeseries *ts,
     int *recindex, char **errstr);
 extern DLLEXPORT int ts_insert_record(struct timeseries *ts,
     long_time_t timestamp, int null, double value, const char *flags,
-    int *recindex, char **errstr);
+    int allow_existing, int *recindex, char **errstr);
 extern DLLEXPORT int ts_get_next(struct timeseries *ts, long_time_t tm);
 extern DLLEXPORT int ts_get_prev(struct timeseries *ts, long_time_t tm);
 extern DLLEXPORT int ts_index_of(struct timeseries *ts, long_time_t tm);

@@ -98,7 +98,8 @@ GENFAIL:
 }
 
 DLLEXPORT int ts_insert_record(struct timeseries *ts, long_time_t timestamp,
-    int null, double value, const char *flags, int *recindex, char **errstr)
+    int null, double value, const char *flags, int allow_existing,
+    int *recindex, char **errstr)
 {
     struct ts_record *r;
     char *s;
@@ -111,8 +112,12 @@ DLLEXPORT int ts_insert_record(struct timeseries *ts, long_time_t timestamp,
                  recindex, errstr);
 
     if(ts->data[next_item].timestamp==timestamp){
-        *errstr = "Record already exist";
-        return EINVAL;
+        if(!allow_existing) {
+            *errstr = "Record already exists";
+            return EINVAL;
+        } else {
+            return ts_set_item(ts, next_item, null, value, flags, errstr);
+        }
     }
 
     i = check_block_size(ts, ts->nrecords+1); if(i) goto GENFAIL;
@@ -283,15 +288,8 @@ DLLEXPORT int ts_readline(char *line, struct timeseries *ts, char **errstr)
     if(p && csvtok(&b)) goto INVSYNTAX;
     
     /* Add record to array. */
-    index = ts_index_of(ts, timestamp);
-    if(index<0)
-        retval = ts_insert_record(ts, timestamp, null, value, flags, &index, errstr);
-    else
-        retval = ts_set_item(ts, index, null, value, flags, errstr);
-
-    if(retval) goto END;
-
-    retval = 0;
+    retval = ts_insert_record(ts, timestamp, null, value, flags, 1, &index,
+                                                                    errstr);
 
 END:
     return retval;
