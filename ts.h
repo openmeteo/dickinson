@@ -63,7 +63,7 @@ extern DLLEXPORT int ts_readline(char *line, struct timeseries *ts,
 extern DLLEXPORT int ts_merge(struct timeseries *ts1, struct timeseries *ts2, 
                                                                 char **errstr);
 extern DLLEXPORT int ts_merge_anyway(struct timeseries *ts1,
-                                        struct timeseries *ts2, char **errstr);
+                                  const struct timeseries *ts2, char **errstr);
 extern DLLEXPORT int ts_writeline(char **line, struct timeseries *ts, int index,
     int precision, char **errstr);
 extern DLLEXPORT int ts_identify_events(const struct timeseries **ts,
