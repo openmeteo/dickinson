@@ -24,7 +24,6 @@
 #include "csv.h"
 #include "dates.h"
 #include "ts.h"
-#include "mktime_mod.h"
 #include "platform.h"
 
 /* Makes sure that the data block allocated for the timeseries data is large

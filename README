@@ -1,8 +1,10 @@
 dickinson shared library
 
 Copyright (C) 2010, National Technical University of Athens,
+Copyright (C) 1997, 1998, 2005, 2008 The NetBSD Foundation, Inc.
+              (for strptime)
 Copyright (C) 1993-1999, 2002-2007, 2008 Free Software Foundation, Inc
-              (for the modified mktime.c unit).
+              (for the modified ydms_diff function).
 
 Fast and compact routines for time series storage in C for use
 with other software / language.

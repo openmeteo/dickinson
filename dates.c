@@ -19,7 +19,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include "dates.h"
-#include "mktime_mod.h"
 #include "strings.h"
 
 #ifndef HAVE_STRPTIME
