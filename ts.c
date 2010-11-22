@@ -71,8 +71,8 @@ GENFAIL:
     return errno;
 }
 
-DLLEXPORT int append_record(struct timeseries *ts, long long timestamp, int null,
-    double value, const char *flags, int *recindex, char **errstr)
+DLLEXPORT int append_record(struct timeseries *ts, long_time_t timestamp,
+    int null, double value, const char *flags, int *recindex, char **errstr)
 {
     struct record *r;
     char *s;
@@ -98,7 +98,7 @@ GENFAIL:
     return errno;
 }
 
-DLLEXPORT int insert_record(struct timeseries *ts, long long timestamp, int null,
+DLLEXPORT int insert_record(struct timeseries *ts, long_time_t timestamp, int null,
     double value, const char *flags, int *recindex, char **errstr)
 {
     struct record *r;
@@ -136,10 +136,10 @@ GENFAIL:
     return errno;
 }
 
-DLLEXPORT int get_next(struct timeseries *ts, long long tm)
+DLLEXPORT int get_next(struct timeseries *ts, long_time_t tm)
 {
     int len, low, high, mid;
-    long long diff;
+    long_time_t diff;
 
     len = ts_length(ts);
     if(len==0)
@@ -166,7 +166,7 @@ DLLEXPORT int get_next(struct timeseries *ts, long long tm)
         return low;
 }
 
-DLLEXPORT int get_prev(struct timeseries *ts, long long tm)
+DLLEXPORT int get_prev(struct timeseries *ts, long_time_t tm)
 {
     int i, len;
     len = ts_length(ts);
@@ -180,7 +180,7 @@ DLLEXPORT int get_prev(struct timeseries *ts, long long tm)
     return i;
 }
 
-DLLEXPORT int index_of(struct timeseries *ts, long long tm)
+DLLEXPORT int index_of(struct timeseries *ts, long_time_t tm)
 {
     int i;
 
@@ -203,7 +203,7 @@ DLLEXPORT int delete_item(struct timeseries *ts, int index){
     return index;
 }
 
-DLLEXPORT int delete_record(struct timeseries *ts, long long tm){
+DLLEXPORT int delete_record(struct timeseries *ts, long_time_t tm){
     int i;
 
     if(!ts->nrecords) return -1;
@@ -260,7 +260,7 @@ DLLEXPORT int ts_readline(char *line, struct timeseries *ts, char **errstr)
     struct tm tm;
     double value = 0.0;
     int retval;
-    long long timestamp;
+    long_time_t timestamp;
     int index;
     
     /* Parse and read line fields. */

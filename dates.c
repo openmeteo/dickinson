@@ -531,12 +531,12 @@ FAIL:
     goto END;
 }
 
-void igmtime(long long gm_time, struct tm *tm)
+void igmtime(long_time_t gm_time, struct tm *tm)
 {
     int delta_days_1970;
     int aprox_year;
-    long long curr_year_t;
-    long long actual_delta;
+    long_time_t curr_year_t;
+    long_time_t actual_delta;
     int year, seconds, month, curmdays; 
 
     delta_days_1970 = (int)(gm_time / 86400);

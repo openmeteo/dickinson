@@ -25,9 +25,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "platform.h"
+#include "dates.h"
 
 struct record {
-    long long int timestamp;
+    long_time_t timestamp;
     int null;
     double value;
     char *flags;
@@ -39,14 +40,15 @@ struct timeseries {
     size_t memblocksize; /* Size of the dynamic memory block in bytes. */
 };
 
-extern DLLEXPORT int append_record(struct timeseries *ts, long long timestamp,
+extern DLLEXPORT int append_record(struct timeseries *ts, long_time_t timestamp,
     int null, double value, const char *flags, int *recindex, char **errstr);
-extern DLLEXPORT int insert_record(struct timeseries *ts, long long timestamp, 
-    int null, double value, const char *flags, int *recindex, char **errstr);
-extern DLLEXPORT int get_next(struct timeseries *ts, long long tm);
-extern DLLEXPORT int get_prev(struct timeseries *ts, long long tm);
-extern DLLEXPORT int index_of(struct timeseries *ts, long long tm);
-extern DLLEXPORT int delete_record(struct timeseries *ts, long long tm);
+extern DLLEXPORT int insert_record(struct timeseries *ts,
+    long_time_t timestamp, int null, double value, const char *flags,
+    int *recindex, char **errstr);
+extern DLLEXPORT int get_next(struct timeseries *ts, long_time_t tm);
+extern DLLEXPORT int get_prev(struct timeseries *ts, long_time_t tm);
+extern DLLEXPORT int index_of(struct timeseries *ts, long_time_t tm);
+extern DLLEXPORT int delete_record(struct timeseries *ts, long_time_t tm);
 extern DLLEXPORT int delete_item(struct timeseries *ts, int index);
 extern DLLEXPORT void * ts_create(void);
 extern DLLEXPORT void ts_free(struct timeseries *ts);

@@ -22,10 +22,12 @@
     
 #define is_leap_year(y) !((y)%400) || ((y)%100 && !((y)%4))
 
+typedef long long long_time_t;
+
 extern int month_days(int mon, int year);
 extern void add_minutes(struct tm *tm, int mins);
 extern int tmcmp(struct tm *tm1, struct tm *tm2);
 extern int parsedatestring(const char *s, struct tm *tm, char **errmsg);
-extern void igmtime(long long gm_time, struct tm *tm);
+extern void igmtime(long_time_t gm_time, struct tm *tm);
 
 #endif /* _DATES_H */
