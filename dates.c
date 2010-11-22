@@ -477,14 +477,13 @@ static long_time_t ydhms_diffl (long int year1, long int yday1, int hour1,
   int b400 = SHR (b100, 2);
   int intervening_leap_days = (a4 - b4) - (a100 - b100) + (a400 - b400);
 
-  /* Compute the desired time in time_t precision.  Overflow might
-     occur here.  */
-  long long tyear1 = year1;
-  long long years = tyear1 - year0;
-  long long days = 365 * years + yday1 - yday0 + intervening_leap_days;
+  /* Compute the desired time in long_time_t precision. */
+  int tyear1 = year1;
+  int years = tyear1 - year0;
+  long days = 365 * years + yday1 - yday0 + intervening_leap_days;
   long long hours = 24 * days + hour1 - hour0;
   long long minutes = 60 * hours + min1 - min0;
-  long long seconds = 60 * minutes + sec1 - sec0;
+  long_time_t seconds = 60 * minutes + sec1 - sec0;
   return seconds;
 }
 
