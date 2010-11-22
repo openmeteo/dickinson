@@ -376,6 +376,18 @@ GENFAIL:
     return errno;
 }
 
+DLLEXPORT int ts_merge_anyway(struct timeseries *ts1, struct timeseries *ts2,
+                            char **errstr)
+{
+    struct ts_record *r;
+    int result, dummy;
+
+    for(r=ts2->data; r < ts2->data + ts2->nrecords; ++r)
+        if((result = ts_insert_record(ts1, r->timestamp, r->null, r->value,
+                                                r->flags, 1, &dummy, errstr)))
+            return result;
+}
+
 DLLEXPORT int ts_writeline(char **line, struct timeseries *ts, int index, int precision,
                                                                 char **errstr)
 {
