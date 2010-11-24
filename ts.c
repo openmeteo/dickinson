@@ -140,7 +140,7 @@ GENFAIL:
     return errno;
 }
 
-DLLEXPORT int ts_get_next(struct timeseries *ts, long_time_t tm)
+DLLEXPORT int ts_get_next(const struct timeseries *ts, long_time_t tm)
 {
     int len, low, high, mid;
     long_time_t diff;
@@ -170,7 +170,7 @@ DLLEXPORT int ts_get_next(struct timeseries *ts, long_time_t tm)
         return low;
 }
 
-DLLEXPORT int ts_get_prev(struct timeseries *ts, long_time_t tm)
+DLLEXPORT int ts_get_prev(const struct timeseries *ts, long_time_t tm)
 {
     int i, len;
     len = ts_length(ts);
@@ -184,7 +184,7 @@ DLLEXPORT int ts_get_prev(struct timeseries *ts, long_time_t tm)
     return i;
 }
 
-DLLEXPORT int ts_index_of(struct timeseries *ts, long_time_t tm)
+DLLEXPORT int ts_index_of(const struct timeseries *ts, long_time_t tm)
 {
     int i;
 
@@ -235,7 +235,7 @@ DLLEXPORT void ts_free(struct timeseries *ts)
     free(ts);
 }
 
-DLLEXPORT int ts_length(struct timeseries *ts)
+DLLEXPORT int ts_length(const struct timeseries *ts)
 {
     return ts->nrecords;
 }
@@ -453,13 +453,32 @@ typedef struct sdata {
     int reverse;
     double start_threshold, end_threshold;
     int ntimeseries_start_threshold, ntimeseries_end_threshold;
-    long_time_t time_separator,*start_dates, *end_dates;
+    long_time_t time_separator, **start_dates, **end_dates;
     int *nevents;
     char **errstr;
 } state_data_t;
 
+static int count_timeseries_crossing_threshold(state_data_t *sd, double
+                                                                threshold)
+{
+    const struct timeseries *t;
+    int result = 0;
+    int sign = sd->reverse ? -1 : 1;
+    
+    for(t = *(sd->ts); t < *(sd->ts) + sd->ntimeseries; ++t)
+    {
+        int i = ts_index_of(t, sd->current_record->timestamp);
+        struct ts_record *r = t->data + i;
+        if(!r->null && sign*r->value > sign*threshold)
+            ++result;
+    }
+    return result;
+}
+
 static void tsie_end(state_data_t *sd);
 static void tsie_not_in_event(state_data_t *sd);
+static void tsie_start_event(state_data_t *sd);
+static void tsie_in_event(state_data_t *sd);
 
 static void tsie_start(state_data_t *sd)
 {
@@ -467,6 +486,8 @@ static void tsie_start(state_data_t *sd)
     struct timeseries *tmstmps;
 
     sd->result = 0; /* This will always stay at zero until we find an error. */
+    *(sd->start_dates) = *(sd->end_dates) = NULL;
+    *(sd->nevents) = 0;
 
     /* all_timestamps is a dummy time series that is used to hold all the time
      * stamps of all the time series.
@@ -500,8 +521,44 @@ static void tsie_start(state_data_t *sd)
 
 static void tsie_not_in_event(state_data_t *sd)
 {
-    /* TODO: Continue here. */
-    return;
+    struct timeseries *tmstmps = sd->all_timestamps;
+    while(sd->current_record < tmstmps->data + tmstmps->nrecords) {
+        int i = count_timeseries_crossing_threshold(sd, sd->start_threshold);
+        if(i > sd->ntimeseries_start_threshold) {
+            sd->state = tsie_start_event;
+            return;
+        }
+        ++(sd->current_record);
+    }
+    sd->state = tsie_end;
+}
+
+static void tsie_start_event(state_data_t *sd)
+{
+    unsigned long memblocksize = sizeof(long_time_t) * *(sd->nevents)+1;
+    long_time_t *p = realloc(*(sd->start_dates), memblocksize);
+    long_time_t *q = realloc(*(sd->end_dates), memblocksize);
+
+    if(p && q) {
+        *(sd->start_dates) = p;
+        *(sd->end_dates) = q;
+        ++(*(sd->nevents));
+        sd->state = tsie_in_event;
+        return;
+    }
+    sd->result = errno;
+    *(sd->errstr) = strerror(errno);
+    /* Rollback */
+    memblocksize = sizeof(long_time_t) * *(sd->nevents);
+    if(p)
+        *(sd->start_dates) = realloc(p, memblocksize);
+    if(q)
+        *(sd->end_dates) = realloc(q, memblocksize);
+    sd->state = tsie_end;
+}
+
+static void tsie_in_event(state_data_t *sd)
+{
 }
 
 static void tsie_end(state_data_t *sd)
@@ -515,7 +572,7 @@ DLLEXPORT int ts_identify_events(const struct timeseries **ts, int ntimeseries,
     double start_threshold, double end_threshold,
     int ntimeseries_start_threshold, int ntimeseries_end_threshold,
     long_time_t time_separator,
-    long_time_t *start_dates, long_time_t *end_dates,
+    long_time_t **start_dates, long_time_t **end_dates,
     int *nevents, char **errstr)
 {
     state_data_t state_data;
