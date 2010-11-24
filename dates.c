@@ -398,7 +398,7 @@ conv_num(const unsigned char *buf, int *dest, uint llim, uint ulim)
 
 #endif
 
-/* YDMS_DIFFL FUNCTION */
+/* YHDMS_DIFFL FUNCTION */
 
 /* This is similar to the ydms_diff function from mktime.c of glibc,
  * modified so that it uses long_time_t instead of time_t. The
@@ -462,8 +462,8 @@ verify (base_year_is_a_multiple_of_100, TM_YEAR_BASE % 100 == 0);
    The result may overflow.  It is the caller's responsibility to
    detect overflow.  */
 
-long_time_t ydhms_diffl (long int year1, long int yday1, int hour1,
-    int min1, int sec1, int year0, int yday0, int hour0, int min0, int sec0)
+long_time_t ydhms_diffl(int year1, int yday1, int hour1, int min1, int sec1,
+                        int year0, int yday0, int hour0, int min0, int sec0)
 {
   verify (C99_integer_division, -1 / 2 == 0);
 

@@ -29,5 +29,7 @@ extern void add_minutes(struct tm *tm, int mins);
 extern int tmcmp(struct tm *tm1, struct tm *tm2);
 extern int parsedatestring(const char *s, struct tm *tm, char **errmsg);
 extern void igmtime(long_time_t gm_time, struct tm *tm);
+extern long_time_t ydhms_diffl (int year1, int yday1, int hour1, int min1,
+    int sec1, int year0, int yday0, int hour0, int min0, int sec0);
 
 #endif /* _DATES_H */
