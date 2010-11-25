@@ -212,24 +212,24 @@ DLLEXPORT int ts_get_i(const struct timeseries *ts, long_time_t timestamp)
 
 DLLEXPORT int ts_delete_item(struct timeseries *ts, int index)
 {
-    return ts_delete_items(ts, index, index);
+    struct ts_record *r = ts->data + index;
+    return ts_delete_records(ts, r, r) ? index : -1;
 }
 
-DLLEXPORT int ts_delete_items(struct timeseries *ts, int index1, int index2)
+DLLEXPORT struct ts_record *ts_delete_records(struct timeseries *ts,
+                                    struct ts_record *r1, struct ts_record *r2)
 {
-    struct ts_record *r;
-    if(!ts->nrecords) return -1;
-    if(index1<0 || index1 >= ts->nrecords || index2<0 || index2 >= ts->nrecords
-                                                            || index2<index1)
-        return -1;
-    for(r = ts->data + index1; r <= ts->data + index2; ++r) {
+    struct ts_record *start = ts->data;
+    struct ts_record *end   = ts->data + ts->nrecords - 1;
+    if(!ts->nrecords || r1<start || r2<start || r1>end || r2>end || r2<r1)
+        return NULL;
+    for(struct ts_record *r = r1; r <= r2; ++r) {
         free(r->flags);
         r->flags = NULL;
     }
-    memmove(ts->data + index1, ts->data + index2 + 1,
-                              (ts->nrecords - index2)*sizeof(struct ts_record));
-    ts->nrecords -= index2-index1+1;
-    return index1;
+    memmove(r1, r2+1, (end-r2)*sizeof(struct ts_record));
+    ts->nrecords -= r2-r1+1;
+    return r1;
 }
 
 DLLEXPORT int ts_delete_record(struct timeseries *ts, long_time_t tm)
@@ -497,11 +497,8 @@ static int num_of_timeseries_crossing_threshold(struct state_data *sd,
     const struct timeseries *t;
     int result = 0;
     int sign = sd->reverse ? -1 : 1;
-    
-    for(t = sd->ts->ts; t < sd->ts->ts + sd->ts->n; ++t)
-    {
-        int i = ts_get_i(t, sd->current_record->timestamp);
-        struct ts_record *r = t->data + i;
+    for(t = sd->ts->ts; t < sd->ts->ts + sd->ts->n; ++t) {
+        struct ts_record *r = ts_get(t, sd->current_record->timestamp);
         if(!r->null && sign*r->value > sign*threshold)
             ++result;
     }

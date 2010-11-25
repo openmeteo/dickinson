@@ -65,8 +65,8 @@ extern DLLEXPORT int ts_get_i(const struct timeseries *ts,
                                                         long_time_t timestamp);
 extern DLLEXPORT int ts_delete_record(struct timeseries *ts, long_time_t tm);
 extern DLLEXPORT int ts_delete_item(struct timeseries *ts, int index);
-extern DLLEXPORT int ts_delete_items(struct timeseries *ts, int index1,
-                                                                int index2);
+extern DLLEXPORT struct ts_record *ts_delete_records(struct timeseries *ts,
+                                   struct ts_record *r1, struct ts_record *r2);
 extern DLLEXPORT void *ts_create(void);
 extern DLLEXPORT void ts_free(struct timeseries *ts);
 extern DLLEXPORT int ts_length(const struct timeseries *ts);
