@@ -195,7 +195,8 @@ DLLEXPORT int ts_index_of(const struct timeseries *ts, long_time_t tm)
         return -1;
 }
 
-DLLEXPORT int ts_delete_item(struct timeseries *ts, int index){
+DLLEXPORT int ts_delete_item(struct timeseries *ts, int index)
+{
     if(!ts->nrecords) return -1;
     if(index>=ts->nrecords) return -1;
     free(ts->data[index].flags);
@@ -207,7 +208,25 @@ DLLEXPORT int ts_delete_item(struct timeseries *ts, int index){
     return index;
 }
 
-DLLEXPORT int ts_delete_record(struct timeseries *ts, long_time_t tm){
+DLLEXPORT int ts_delete_items(struct timeseries *ts, int index1, int index2)
+{
+    struct ts_record *r;
+    if(!ts->nrecords) return -1;
+    if(index1<0 || index1 >= ts->nrecords || index2<0 || index2 >= ts->nrecords
+                                                            || index2<index1)
+        return -1;
+    for(r = ts->data + index1; r <= ts->data +index2; ++r) {
+        free(r->flags);
+        r->flags = NULL;
+    }
+    memmove(ts->data + index1, ts->data + index2,
+                                    (index2-index1)*sizeof(struct ts_record));
+    ts->nrecords -= index2-index1;
+    return index1;
+}
+
+DLLEXPORT int ts_delete_record(struct timeseries *ts, long_time_t tm)
+{
     int i;
 
     if(!ts->nrecords) return -1;
@@ -446,16 +465,17 @@ END:
  * tsie_start, tsie_end, tsie_in_event). The state function (a pointer to it)
  * is used as the state symbol. The state functions return nothing, but they
  * change the state data structure as needed, in which they also set the new
- * state.
+ * state. struct state_data contains mostly the arguments supplied to
+ * ts_identify_events, and a few more members that are commented below.
  */
 
 struct state_data {
-    const struct timeseries_list *ts;     /* List of time series... */
-    struct timeseries *all_timestamps;    /* All timestamps of all ts merged. */
-    struct ts_record *current_record;
-    void (*state)(struct state_data *);
-    int result;
-    struct interval range;
+    const struct timeseries_list *ts;
+    struct timeseries *all_timestamps; /* All timestamps of all ts merged. */
+    struct ts_record *current_record;  /* Pointer in all_timestamps. */
+    void (*state)(struct state_data *);/* The current state. */
+    int result;                        /* Stays at 0 until finding error. */
+    struct interval range;             
     int reverse;
     double start_threshold, end_threshold;
     int ntimeseries_start_threshold, ntimeseries_end_threshold;
@@ -501,7 +521,7 @@ static void tsie_start(struct state_data *sd)
     if((sd->all_timestamps = ts_create())==NULL) {
         *(sd->errstr) = strerror(errno);
         sd->result = errno;
-        sd->state = NULL;
+        sd->state = tsie_end;
         return;
     }
     tmstmps = sd->all_timestamps;
@@ -552,6 +572,7 @@ static void tsie_start_event(struct state_data *sd)
     sd->events->intervals = p;
     (sd->events->intervals)[(sd->events->n)++].start_date
                                             = sd->current_record->timestamp;
+    (sd->events->intervals)[(sd->events->n)++].end_date = LONG_TIME_T_MIN;
     sd->state = tsie_in_event;
 }
 

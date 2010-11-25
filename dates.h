@@ -19,10 +19,13 @@
 #define _DATES_H
 
 #include <time.h>
+#include <limits.h>
     
 #define is_leap_year(y) !((y)%400) || ((y)%100 && !((y)%4))
 
 typedef long long long_time_t;
+#define LONG_TIME_T_MAX LLONG_MAX
+#define LONG_TIME_T_MIN LLONG_MIN
 
 struct interval {
     long_time_t start_date;
