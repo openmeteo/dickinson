@@ -4,4 +4,5 @@ AC_PROG_CC
 AC_PROG_LIBTOOL
 AC_CONFIG_FILES([Makefile])
 AC_CHECK_FUNCS([strdup strptime])
+AC_DEFINE([_XOPEN_SOURCE], [500], ["Required for strdup and strptime"])
 AC_OUTPUT

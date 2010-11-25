@@ -42,4 +42,8 @@ extern void igmtime(long_time_t gm_time, struct tm *tm);
 extern long_time_t ydhms_diffl (int year1, int yday1, int hour1, int min1,
     int sec1, int year0, int yday0, int hour0, int min0, int sec0);
 
+#ifndef HAVE_STRPTIME
+    char *strptime(const char *buf, const char *fmt, struct tm *tm);
+#endif
+
 #endif /* _DATES_H */
