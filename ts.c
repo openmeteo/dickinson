@@ -386,6 +386,7 @@ DLLEXPORT int ts_merge_anyway(struct timeseries *ts1,
         if((result = ts_insert_record(ts1, r->timestamp, r->null, r->value,
                                                 r->flags, 1, &dummy, errstr)))
             return result;
+    return 0;
 }
 
 DLLEXPORT int ts_writeline(char **line, struct timeseries *ts, int index, int precision,
@@ -440,33 +441,37 @@ END:
 
 /* ts_identify_events */
 
-typedef struct sdata *state_data_ptr;
-typedef void (*state_runner)(state_data_ptr);
-typedef struct sdata {
-    const struct timeseries *ts; /* List of time series */
-    int ntimeseries;
-    struct timeseries *all_timestamps;
+/* The function uses state-transition. The state data are in struct state_data.
+ * Each state (e.g. start, end, in_event) is managed by one function, (e.g.
+ * tsie_start, tsie_end, tsie_in_event). The state function (a pointer to it)
+ * is used as the state symbol. The state functions return nothing, but they
+ * change the state data structure as needed, in which they also set the new
+ * state.
+ */
+
+struct state_data {
+    const struct timeseries_list *ts;     /* List of time series... */
+    struct timeseries *all_timestamps;    /* All timestamps of all ts merged. */
     struct ts_record *current_record;
-    state_runner state;
+    void (*state)(struct state_data *);
     int result;
-    long_time_t start_date, end_date;
+    struct interval range;
     int reverse;
     double start_threshold, end_threshold;
     int ntimeseries_start_threshold, ntimeseries_end_threshold;
     long_time_t time_separator;
-    struct interval **events;
-    int *nevents;
+    struct interval_list *events;
     char **errstr;
-} state_data_t;
+};
 
-static int count_timeseries_crossing_threshold(state_data_t *sd, double
-                                                                threshold)
+static int num_of_timeseries_crossing_threshold(struct state_data *sd,
+                                                double threshold)
 {
     const struct timeseries *t;
     int result = 0;
     int sign = sd->reverse ? -1 : 1;
     
-    for(t = sd->ts; t < sd->ts + sd->ntimeseries; ++t)
+    for(t = sd->ts->ts; t < sd->ts->ts + sd->ts->n; ++t)
     {
         int i = ts_index_of(t, sd->current_record->timestamp);
         struct ts_record *r = t->data + i;
@@ -476,19 +481,19 @@ static int count_timeseries_crossing_threshold(state_data_t *sd, double
     return result;
 }
 
-static void tsie_end(state_data_t *sd);
-static void tsie_not_in_event(state_data_t *sd);
-static void tsie_start_event(state_data_t *sd);
-static void tsie_in_event(state_data_t *sd);
+static void tsie_end(struct state_data *sd);
+static void tsie_not_in_event(struct state_data *sd);
+static void tsie_start_event(struct state_data *sd);
+static void tsie_in_event(struct state_data *sd);
 
-static void tsie_start(state_data_t *sd)
+static void tsie_start(struct state_data *sd)
 {
     const struct timeseries *t;
     struct timeseries *tmstmps;
 
     sd->result = 0; /* This will always stay at zero until we find an error. */
-    *(sd->events) = NULL;
-    *(sd->nevents) = 0;
+    sd->events->intervals = NULL;
+    sd->events->n = 0;
 
     /* all_timestamps is a dummy time series that is used to hold all the time
      * stamps of all the time series.
@@ -501,30 +506,30 @@ static void tsie_start(state_data_t *sd)
     }
     tmstmps = sd->all_timestamps;
 
-    for(t = sd->ts; t < sd->ts + sd->ntimeseries; ++t)
+    for(t = sd->ts->ts; t < sd->ts->ts + sd->ts->n; ++t)
         if((sd->result = ts_merge_anyway(tmstmps, t, sd->errstr))) {
             sd->state = tsie_end;
             return;
         }
 
-    *(sd->nevents) = 0;
+    sd->events->n = 0;
     sd->current_record = tmstmps->data;
     while(sd->current_record < tmstmps->data + tmstmps->nrecords &&
-                              sd->current_record->timestamp < sd->start_date)
+                         sd->current_record->timestamp < sd->range.start_date)
         ++sd->current_record;
     if(sd->current_record >= tmstmps->data + tmstmps->nrecords ||
-                              sd->current_record->timestamp > sd->end_date) {
+                         sd->current_record->timestamp > sd->range.end_date) {
         sd->state = tsie_end;
         return;
     }
     sd->state = tsie_not_in_event;
 }
 
-static void tsie_not_in_event(state_data_t *sd)
+static void tsie_not_in_event(struct state_data *sd)
 {
     struct timeseries *tmstmps = sd->all_timestamps;
     while(sd->current_record < tmstmps->data + tmstmps->nrecords) {
-        int i = count_timeseries_crossing_threshold(sd, sd->start_threshold);
+        int i = num_of_timeseries_crossing_threshold(sd, sd->start_threshold);
         if(i > sd->ntimeseries_start_threshold) {
             sd->state = tsie_start_event;
             return;
@@ -534,46 +539,43 @@ static void tsie_not_in_event(state_data_t *sd)
     sd->state = tsie_end;
 }
 
-static void tsie_start_event(state_data_t *sd)
+static void tsie_start_event(struct state_data *sd)
 {
-    unsigned long memblocksize = sizeof(struct interval) * (*(sd->nevents)+1);
-    struct interval *p = realloc(*(sd->events), memblocksize);
+    unsigned long memblocksize = sizeof(struct interval) * (sd->events->n+1);
+    struct interval *p = realloc(sd->events->intervals, memblocksize);
     if(p==NULL) {
         sd->result = errno;
         *(sd->errstr) = strerror(errno);
         sd->state = tsie_end;
         return;
     }
-    *(sd->events) = p;
-    (*(sd->events))[(*(sd->nevents))++].start_date
+    sd->events->intervals = p;
+    (sd->events->intervals)[(sd->events->n)++].start_date
                                             = sd->current_record->timestamp;
     sd->state = tsie_in_event;
 }
 
-static void tsie_in_event(state_data_t *sd)
+static void tsie_in_event(struct state_data *sd)
 {
 }
 
-static void tsie_end(state_data_t *sd)
+static void tsie_end(struct state_data *sd)
 {
     ts_free(sd->all_timestamps);
     sd->state = NULL;
 }
 
-DLLEXPORT int ts_identify_events(const struct timeseries *ts, int ntimeseries,
-    long_time_t start_date, long_time_t end_date, int reverse,
-    double start_threshold, double end_threshold,
-    int ntimeseries_start_threshold, int ntimeseries_end_threshold,
-    long_time_t time_separator, struct interval **events, int *nevents,
-    char **errstr)
+DLLEXPORT int ts_identify_events(const struct timeseries_list *ts, 
+    struct interval range, int reverse, double start_threshold,
+    double end_threshold, int ntimeseries_start_threshold,
+    int ntimeseries_end_threshold, long_time_t time_separator,
+    struct interval_list *events, char **errstr)
 {
-    state_data_t state_data;
+    struct state_data state_data;
 
     state_data.all_timestamps = ts_create();
     state_data.ts = ts;
-    state_data.ntimeseries = ntimeseries;
-    state_data.start_date = start_date;
-    state_data.end_date = end_date;
+    state_data.range = range;
     state_data.reverse = reverse;
     state_data.start_threshold = start_threshold;
     state_data.end_threshold = end_threshold;
@@ -581,13 +583,11 @@ DLLEXPORT int ts_identify_events(const struct timeseries *ts, int ntimeseries,
     state_data.ntimeseries_end_threshold = ntimeseries_end_threshold;
     state_data.time_separator = time_separator;
     state_data.events = events;
-    state_data.nevents = nevents;
     state_data.errstr = errstr;
 
     state_data.state = tsie_start;
-    while(state_data.state) {
+    while(state_data.state)
         (*(state_data.state))(&state_data);
-    }
     return state_data.result;
 }
     

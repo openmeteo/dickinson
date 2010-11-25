@@ -40,6 +40,11 @@ struct timeseries {
     size_t memblocksize; /* Size of the dynamic memory block in bytes. */
 };
 
+struct timeseries_list {
+    struct timeseries *ts;
+    int n;
+};
+
 extern DLLEXPORT int ts_append_record(struct timeseries *ts,
     long_time_t timestamp, int null, double value, const char *flags,
     int *recindex, char **errstr);
@@ -66,12 +71,10 @@ extern DLLEXPORT int ts_merge_anyway(struct timeseries *ts1,
                                   const struct timeseries *ts2, char **errstr);
 extern DLLEXPORT int ts_writeline(char **line, struct timeseries *ts, int index,
     int precision, char **errstr);
-extern DLLEXPORT int ts_identify_events(const struct timeseries *ts,
-    int ntimeseries,
-    long_time_t start_date, long_time_t end_date, int reverse,
+extern DLLEXPORT int ts_identify_events(const struct timeseries_list *ts,
+    struct interval range, int reverse,
     double start_threshold, double end_threshold,
     int ntimeseries_start_threshold, int ntimeseries_end_threshold,
-    long_time_t time_separator, struct interval **events, int *nevents,
-    char **errstr);
+    long_time_t time_separator, struct interval_list *events, char **errstr);
 
 #endif /* _TS_H */
