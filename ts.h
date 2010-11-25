@@ -51,9 +51,18 @@ extern DLLEXPORT int ts_append_record(struct timeseries *ts,
 extern DLLEXPORT int ts_insert_record(struct timeseries *ts,
     long_time_t timestamp, int null, double value, const char *flags,
     int allow_existing, int *recindex, char **errstr);
-extern DLLEXPORT int ts_get_next(const struct timeseries *ts, long_time_t tm);
-extern DLLEXPORT int ts_get_prev(const struct timeseries *ts, long_time_t tm);
-extern DLLEXPORT int ts_index_of(const struct timeseries *ts, long_time_t tm);
+extern DLLEXPORT struct ts_record *ts_get_next(const struct timeseries *ts,
+                                                        long_time_t timestamp);
+extern DLLEXPORT int ts_get_next_i(const struct timeseries *ts,
+                                                        long_time_t timestamp);
+extern DLLEXPORT struct ts_record *ts_get_prev(const struct timeseries *ts,
+                                                        long_time_t timestamp);
+extern DLLEXPORT int ts_get_prev_i(const struct timeseries *ts,
+                                                        long_time_t timestamp);
+extern DLLEXPORT struct ts_record *ts_get(const struct timeseries *ts,
+                                                        long_time_t timestamp);
+extern DLLEXPORT int ts_get_i(const struct timeseries *ts,
+                                                        long_time_t timestamp);
 extern DLLEXPORT int ts_delete_record(struct timeseries *ts, long_time_t tm);
 extern DLLEXPORT int ts_delete_item(struct timeseries *ts, int index);
 extern DLLEXPORT int ts_delete_items(struct timeseries *ts, int index1,

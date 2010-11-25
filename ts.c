@@ -106,7 +106,7 @@ DLLEXPORT int ts_insert_record(struct timeseries *ts, long_time_t timestamp,
     int i;
     int next_item;
 
-    next_item = ts_get_next(ts, timestamp);
+    next_item = ts_get_next_i(ts, timestamp);
     if(next_item==-1)
         return ts_append_record(ts, timestamp, null, value, flags, 
                  recindex, errstr);
@@ -140,59 +140,74 @@ GENFAIL:
     return errno;
 }
 
-DLLEXPORT int ts_get_next(const struct timeseries *ts, long_time_t tm)
+DLLEXPORT struct ts_record *ts_get_next(const struct timeseries *ts,
+                                                        long_time_t timestamp)
 {
-    int len, low, high, mid;
+    struct ts_record *low, *high, *mid;
     long_time_t diff;
 
-    len = ts_length(ts);
-    if(len==0)
-        return -1;
-    low = 0;
-    high = len-1;
-    while(low<=high)
-    {
-        mid = (low+high)/2;
-        diff = tm - ts->data[mid].timestamp;
+    if(!ts->nrecords)
+        return NULL;
+    low = ts->data;
+    high = ts->data + (ts->nrecords - 1);
+    while(low<=high) {
+        mid = low + (high-low)/2;
+        diff = timestamp - mid->timestamp;
         if(diff<0)
             high = mid-1;
         else if(diff>0)
             low = mid+1;
-        else
-        {
+        else {
             low = mid;
             break;
         }
     };
-    if(low>=len)
-        return -1;
+    if(low>=ts->data + ts->nrecords)
+        return NULL;
     else
         return low;
 }
 
-DLLEXPORT int ts_get_prev(const struct timeseries *ts, long_time_t tm)
+DLLEXPORT int ts_get_next_i(const struct timeseries *ts, long_time_t timestamp)
 {
-    int i, len;
-    len = ts_length(ts);
-    if(len==0 || tm < ts->data[0].timestamp)
+    struct ts_record *r = ts_get_next(ts, timestamp);
+    if(r==NULL)
         return -1;
-    i = ts_get_next(ts, tm);
-    if(i==-1)
-        i = len-1;
-    else if(tm!=ts->data[i].timestamp)
-        i--;
-    return i;
+    return r - ts->data;
 }
 
-DLLEXPORT int ts_index_of(const struct timeseries *ts, long_time_t tm)
+DLLEXPORT struct ts_record *ts_get_prev(const struct timeseries *ts,
+                                                        long_time_t timestamp)
 {
-    int i;
+    struct ts_record *r;
+    if(ts->nrecords==0 || timestamp < ts->data->timestamp)
+        return NULL;
+    if((r = ts_get_next(ts, timestamp))==NULL)
+        r = ts->data + ts->nrecords - 1;
+    else if(timestamp!=r->timestamp)
+        r--;
+    return r;
+}
 
-    i = ts_get_next(ts, tm);
-    if(i>=0 && ts->data[i].timestamp==tm)
-        return i;
-    else
+DLLEXPORT int ts_get_prev_i(const struct timeseries *ts, long_time_t timestamp)
+{
+    struct ts_record *r = ts_get_prev(ts, timestamp);
+    if(r==NULL)
         return -1;
+    return r - ts->data;
+}
+
+DLLEXPORT struct ts_record *ts_get(const struct timeseries *ts,
+                                                        long_time_t timestamp)
+{
+    struct ts_record *r = ts_get_next(ts, timestamp);
+    return (r && r->timestamp==timestamp) ? r : NULL;
+}
+
+DLLEXPORT int ts_get_i(const struct timeseries *ts, long_time_t timestamp)
+{
+    struct ts_record *r = ts_get(ts, timestamp);
+    return r ? r - ts->data : -1;
 }
 
 DLLEXPORT int ts_delete_item(struct timeseries *ts, int index)
@@ -222,7 +237,7 @@ DLLEXPORT int ts_delete_record(struct timeseries *ts, long_time_t tm)
     int i;
 
     if(!ts->nrecords) return -1;
-    if((i = ts_index_of(ts, tm))<0) return -1;
+    if((i = ts_get_i(ts, tm))<0) return -1;
     return ts_delete_item(ts, i);
 }
 
@@ -342,11 +357,11 @@ DLLEXPORT int ts_merge(struct timeseries *ts1, struct timeseries *ts2,
     }
 
     /* Find record i1 before which first ts2 record will be inserted. */
-    if((i1 = ts_get_next(ts1, ts2->data[0].timestamp))<0)
+    if((i1 = ts_get_next_i(ts1, ts2->data[0].timestamp))<0)
         i1 = ts1->nrecords;
 
     /* Find record i2 before which last ts2 record will be inserted. */
-    if((i2 = ts_get_next(ts1, ts2->data[ts2->nrecords-1].timestamp))<0)
+    if((i2 = ts_get_next_i(ts1, ts2->data[ts2->nrecords-1].timestamp))<0)
         i2 = ts1->nrecords;
 
     /* All ts2 should go in the same place. */
@@ -485,7 +500,7 @@ static int num_of_timeseries_crossing_threshold(struct state_data *sd,
     
     for(t = sd->ts->ts; t < sd->ts->ts + sd->ts->n; ++t)
     {
-        int i = ts_index_of(t, sd->current_record->timestamp);
+        int i = ts_get_i(t, sd->current_record->timestamp);
         struct ts_record *r = t->data + i;
         if(!r->null && sign*r->value > sign*threshold)
             ++result;
