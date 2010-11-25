@@ -512,7 +512,6 @@ static void tsie_in_event(struct state_data *sd);
 
 static void tsie_start(struct state_data *sd)
 {
-    const struct timeseries *t;
     struct timeseries *tmstmps;
 
     sd->result = 0; /* This will always stay at zero until we find an error. */
@@ -529,23 +528,27 @@ static void tsie_start(struct state_data *sd)
         return;
     }
     tmstmps = sd->all_timestamps;
-
-    for(t = sd->ts->ts; t < sd->ts->ts + sd->ts->n; ++t)
+    for(const struct timeseries *t = sd->ts->ts; t < sd->ts->ts + sd->ts->n;
+                                                                        ++t)
         if((sd->result = ts_merge_anyway(tmstmps, t, sd->errstr))) {
             sd->state = tsie_end;
             return;
         }
-
-    sd->events->n = 0;
-    sd->current_record = tmstmps->data;
-    while(sd->current_record < tmstmps->data + tmstmps->nrecords &&
-                         sd->current_record->timestamp < sd->range.start_date)
-        ++sd->current_record;
-    if(sd->current_record >= tmstmps->data + tmstmps->nrecords ||
-                         sd->current_record->timestamp > sd->range.end_date) {
+    struct ts_record *r1 = ts_get_next(tmstmps, sd->range.start_date);
+    struct ts_record *r2 = ts_get_prev(tmstmps, sd->range.end_date);
+    if(ts_delete_records(tmstmps, r1, r2)==NULL) {
+        *(sd->errstr) = "Internal error in tsie_start";
+        sd->result = 255;
         sd->state = tsie_end;
         return;
     }
+
+    sd->events->n = 0;
+    if(!tmstmps->nrecords) {
+        sd->state = tsie_end;
+        return;
+    }
+    sd->current_record = tmstmps->data;
     sd->state = tsie_not_in_event;
 }
 
@@ -574,7 +577,7 @@ static void tsie_start_event(struct state_data *sd)
         return;
     }
     sd->events->intervals = p;
-    (sd->events->intervals)[(sd->events->n)++].start_date
+    (sd->events->intervals)[sd->events->n].start_date
                                             = sd->current_record->timestamp;
     (sd->events->intervals)[(sd->events->n)++].end_date = LONG_TIME_T_MIN;
     sd->state = tsie_in_event;
