@@ -207,13 +207,13 @@ DLLEXPORT int ts_delete_items(struct timeseries *ts, int index1, int index2)
     if(index1<0 || index1 >= ts->nrecords || index2<0 || index2 >= ts->nrecords
                                                             || index2<index1)
         return -1;
-    for(r = ts->data + index1; r <= ts->data +index2; ++r) {
+    for(r = ts->data + index1; r <= ts->data + index2; ++r) {
         free(r->flags);
         r->flags = NULL;
     }
-    memmove(ts->data + index1, ts->data + index2,
-                                    (index2-index1)*sizeof(struct ts_record));
-    ts->nrecords -= index2-index1;
+    memmove(ts->data + index1, ts->data + index2 + 1,
+                              (ts->nrecords - index2)*sizeof(struct ts_record));
+    ts->nrecords -= index2-index1+1;
     return index1;
 }
 
