@@ -23,6 +23,10 @@
 #define is_leap_year(y) !((y)%400) || ((y)%100 && !((y)%4))
 
 typedef long long long_time_t;
+struct interval {
+    long_time_t start_date;
+    long_time_t end_date;
+};
 
 extern int month_days(int mon, int year);
 extern void add_minutes(struct tm *tm, int mins);

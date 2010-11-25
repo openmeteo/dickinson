@@ -443,7 +443,7 @@ END:
 typedef struct sdata *state_data_ptr;
 typedef void (*state_runner)(state_data_ptr);
 typedef struct sdata {
-    const struct timeseries **ts;
+    const struct timeseries *ts; /* List of time series */
     int ntimeseries;
     struct timeseries *all_timestamps;
     struct ts_record *current_record;
@@ -453,7 +453,8 @@ typedef struct sdata {
     int reverse;
     double start_threshold, end_threshold;
     int ntimeseries_start_threshold, ntimeseries_end_threshold;
-    long_time_t time_separator, **start_dates, **end_dates;
+    long_time_t time_separator;
+    struct interval **events;
     int *nevents;
     char **errstr;
 } state_data_t;
@@ -465,7 +466,7 @@ static int count_timeseries_crossing_threshold(state_data_t *sd, double
     int result = 0;
     int sign = sd->reverse ? -1 : 1;
     
-    for(t = *(sd->ts); t < *(sd->ts) + sd->ntimeseries; ++t)
+    for(t = sd->ts; t < sd->ts + sd->ntimeseries; ++t)
     {
         int i = ts_index_of(t, sd->current_record->timestamp);
         struct ts_record *r = t->data + i;
@@ -486,7 +487,7 @@ static void tsie_start(state_data_t *sd)
     struct timeseries *tmstmps;
 
     sd->result = 0; /* This will always stay at zero until we find an error. */
-    *(sd->start_dates) = *(sd->end_dates) = NULL;
+    *(sd->events) = NULL;
     *(sd->nevents) = 0;
 
     /* all_timestamps is a dummy time series that is used to hold all the time
@@ -500,7 +501,7 @@ static void tsie_start(state_data_t *sd)
     }
     tmstmps = sd->all_timestamps;
 
-    for(t = *(sd->ts); t < *(sd->ts) + sd->ntimeseries; ++t)
+    for(t = sd->ts; t < sd->ts + sd->ntimeseries; ++t)
         if((sd->result = ts_merge_anyway(tmstmps, t, sd->errstr))) {
             sd->state = tsie_end;
             return;
@@ -535,26 +536,18 @@ static void tsie_not_in_event(state_data_t *sd)
 
 static void tsie_start_event(state_data_t *sd)
 {
-    unsigned long memblocksize = sizeof(long_time_t) * *(sd->nevents)+1;
-    long_time_t *p = realloc(*(sd->start_dates), memblocksize);
-    long_time_t *q = realloc(*(sd->end_dates), memblocksize);
-
-    if(p && q) {
-        *(sd->start_dates) = p;
-        *(sd->end_dates) = q;
-        ++(*(sd->nevents));
-        sd->state = tsie_in_event;
+    unsigned long memblocksize = sizeof(struct interval) * (*(sd->nevents)+1);
+    struct interval *p = realloc(*(sd->events), memblocksize);
+    if(p==NULL) {
+        sd->result = errno;
+        *(sd->errstr) = strerror(errno);
+        sd->state = tsie_end;
         return;
     }
-    sd->result = errno;
-    *(sd->errstr) = strerror(errno);
-    /* Rollback */
-    memblocksize = sizeof(long_time_t) * *(sd->nevents);
-    if(p)
-        *(sd->start_dates) = realloc(p, memblocksize);
-    if(q)
-        *(sd->end_dates) = realloc(q, memblocksize);
-    sd->state = tsie_end;
+    *(sd->events) = p;
+    (*(sd->events))[(*(sd->nevents))++].start_date
+                                            = sd->current_record->timestamp;
+    sd->state = tsie_in_event;
 }
 
 static void tsie_in_event(state_data_t *sd)
@@ -567,13 +560,12 @@ static void tsie_end(state_data_t *sd)
     sd->state = NULL;
 }
 
-DLLEXPORT int ts_identify_events(const struct timeseries **ts, int ntimeseries,
+DLLEXPORT int ts_identify_events(const struct timeseries *ts, int ntimeseries,
     long_time_t start_date, long_time_t end_date, int reverse,
     double start_threshold, double end_threshold,
     int ntimeseries_start_threshold, int ntimeseries_end_threshold,
-    long_time_t time_separator,
-    long_time_t **start_dates, long_time_t **end_dates,
-    int *nevents, char **errstr)
+    long_time_t time_separator, struct interval **events, int *nevents,
+    char **errstr)
 {
     state_data_t state_data;
 
@@ -588,8 +580,7 @@ DLLEXPORT int ts_identify_events(const struct timeseries **ts, int ntimeseries,
     state_data.ntimeseries_start_threshold = ntimeseries_start_threshold;
     state_data.ntimeseries_end_threshold = ntimeseries_end_threshold;
     state_data.time_separator = time_separator;
-    state_data.start_dates = start_dates;
-    state_data.end_dates = end_dates;
+    state_data.events = events;
     state_data.nevents = nevents;
     state_data.errstr = errstr;
 
