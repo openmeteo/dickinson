@@ -197,15 +197,7 @@ DLLEXPORT int ts_index_of(const struct timeseries *ts, long_time_t tm)
 
 DLLEXPORT int ts_delete_item(struct timeseries *ts, int index)
 {
-    if(!ts->nrecords) return -1;
-    if(index>=ts->nrecords) return -1;
-    free(ts->data[index].flags);
-    ts->data[index].flags=NULL;
-    if(index<ts->nrecords-1)
-        memmove(ts->data+index, ts->data+index+1,
-            (ts->nrecords - index -1)*sizeof(struct ts_record));
-    ts->nrecords -= 1;
-    return index;
+    return ts_delete_items(ts, index, index);
 }
 
 DLLEXPORT int ts_delete_items(struct timeseries *ts, int index1, int index2)
