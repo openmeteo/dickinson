@@ -509,6 +509,7 @@ static void tsie_end(struct state_data *sd);
 static void tsie_not_in_event(struct state_data *sd);
 static void tsie_start_event(struct state_data *sd);
 static void tsie_in_event(struct state_data *sd);
+static void tsie_maybe_end_of_event(struct state_data *sd);
 
 static void tsie_start(struct state_data *sd)
 {
@@ -577,14 +578,45 @@ static void tsie_start_event(struct state_data *sd)
         return;
     }
     sd->events->intervals = p;
-    (sd->events->intervals)[sd->events->n].start_date
-                                            = sd->current_record->timestamp;
-    (sd->events->intervals)[(sd->events->n)++].end_date = LONG_TIME_T_MIN;
+    p[sd->events->n].start_date = sd->current_record->timestamp;
+    p[(sd->events->n)++].end_date = sd->current_record->timestamp; 
     sd->state = tsie_in_event;
 }
 
 static void tsie_in_event(struct state_data *sd)
 {
+    struct interval *current_event = sd->events->intervals + sd->events->n - 1;
+    struct timeseries *tmstmps = sd->all_timestamps;
+    while(sd->current_record < tmstmps->data + tmstmps->nrecords) {
+        int i = num_of_timeseries_crossing_threshold(sd, sd->end_threshold);
+        if(i < sd->ntimeseries_end_threshold) {
+            sd->state = tsie_maybe_end_of_event;
+            return;
+        }
+        current_event->end_date = sd->current_record->timestamp;
+        ++(sd->current_record);
+    }
+    sd->state = tsie_end;
+}
+
+static void tsie_maybe_end_of_event(struct state_data *sd)
+{
+    struct interval *current_event = sd->events->intervals + sd->events->n - 1;
+    struct timeseries *tmstmps = sd->all_timestamps;
+    while(sd->current_record < tmstmps->data + tmstmps->nrecords) {
+        int i = num_of_timeseries_crossing_threshold(sd, sd->end_threshold);
+        if(i >= sd->ntimeseries_end_threshold) {
+            sd->state = tsie_in_event;
+            return;
+        }
+        if(sd->current_record->timestamp - current_event->end_date >
+                                                        sd->time_separator) {
+            sd->state = tsie_not_in_event;
+            return;
+        }
+        ++(sd->current_record);
+    }
+    sd->state = tsie_end;
 }
 
 static void tsie_end(struct state_data *sd)
