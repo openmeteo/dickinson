@@ -516,8 +516,6 @@ static void tsie_start(struct state_data *sd)
     struct timeseries *tmstmps;
 
     sd->result = 0; /* This will always stay at zero until we find an error. */
-    sd->events->intervals = NULL;
-    sd->events->n = 0;
 
     /* all_timestamps is a dummy time series that is used to hold all the time
      * stamps of all the time series.
@@ -544,7 +542,6 @@ static void tsie_start(struct state_data *sd)
         return;
     }
 
-    sd->events->n = 0;
     if(!tmstmps->nrecords) {
         sd->state = tsie_end;
         return;
@@ -569,17 +566,14 @@ static void tsie_not_in_event(struct state_data *sd)
 
 static void tsie_start_event(struct state_data *sd)
 {
-    unsigned long memblocksize = sizeof(struct interval) * (sd->events->n+1);
-    struct interval *p = realloc(sd->events->intervals, memblocksize);
-    if(p==NULL) {
+    long_time_t t = sd->current_record->timestamp;
+    int err = il_append(sd->events, t, t);
+    if(err) {
         sd->result = errno;
         *(sd->errstr) = strerror(errno);
         sd->state = tsie_end;
         return;
     }
-    sd->events->intervals = p;
-    p[sd->events->n].start_date = sd->current_record->timestamp;
-    p[(sd->events->n)++].end_date = sd->current_record->timestamp; 
     sd->state = tsie_in_event;
 }
 

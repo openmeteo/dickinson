@@ -44,6 +44,11 @@ extern int parsedatestring(const char *s, struct tm *tm, char **errmsg);
 extern void igmtime(long_time_t gm_time, struct tm *tm);
 extern long_time_t ydhms_diffl (int year1, int yday1, int hour1, int min1,
     int sec1, int year0, int yday0, int hour0, int min0, int sec0);
+extern struct interval_list *il_create(void);
+extern void il_free(struct interval_list *intrvls);
+extern int il_append(struct interval_list *intrvls, long_time_t start_date,
+                                                        long_time_t end_date);
+extern int il_delete(struct interval_list *intrvls, int index);
 
 #ifndef HAVE_STRPTIME
     char *strptime(const char *buf, const char *fmt, struct tm *tm);
