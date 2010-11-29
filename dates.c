@@ -672,6 +672,7 @@ DLLEXPORT struct interval_list *il_create(void)
 
 DLLEXPORT void il_free(struct interval_list *intrvls)
 {
+    if(!intrvls) return;
     free(intrvls->intervals);
     intrvls->intervals=NULL;
     free(intrvls);

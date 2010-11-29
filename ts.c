@@ -478,6 +478,7 @@ DLLEXPORT struct timeseries_list *tsl_create(void)
 
 DLLEXPORT void tsl_free(struct timeseries_list *tsl)
 {
+    if(!tsl) return;
     free(tsl->ts);
     tsl->ts=NULL;
     free(tsl);
