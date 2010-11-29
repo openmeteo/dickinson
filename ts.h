@@ -41,7 +41,7 @@ struct timeseries {
 };
 
 struct timeseries_list {
-    struct timeseries *ts;
+    struct timeseries **ts;
     int n;
 };
 
@@ -82,7 +82,12 @@ extern DLLEXPORT int ts_merge_anyway(struct timeseries *ts1,
                                   const struct timeseries *ts2, char **errstr);
 extern DLLEXPORT int ts_writeline(char **line, struct timeseries *ts, int index,
     int precision, char **errstr);
-extern DLLEXPORT int ts_identify_events(const struct timeseries_list *ts,
+extern DLLEXPORT struct timeseries_list *tsl_create(void);
+extern DLLEXPORT void tsl_free(struct timeseries_list *tsl);
+extern DLLEXPORT int tsl_append(struct timeseries_list *tsl, struct timeseries
+                                                                    *t);
+extern DLLEXPORT int tsl_delete(struct timeseries_list *tsl, int index);
+extern DLLEXPORT int ts_identify_events(struct timeseries_list *ts,
     struct interval range, int reverse,
     double start_threshold, double end_threshold,
     int ntimeseries_start_threshold, int ntimeseries_end_threshold,

@@ -690,12 +690,11 @@ DLLEXPORT int il_append(struct interval_list *intrvls, long_time_t start_date,
 
 DLLEXPORT int il_delete(struct interval_list *intrvls, int index)
 {
-    size_t newsize = (intrvls->n - index - 1)*sizeof(struct interval);
     if(index >= intrvls->n || index<0)
         return EINVAL;
     memmove(intrvls->intervals + index, intrvls->intervals + (index + 1),
-                                                                    newsize);
-    --(intrvls->n);
-    intrvls -> intervals = realloc(intrvls->intervals, newsize);
+                            (intrvls->n - index - 1)*sizeof(struct interval));
+    intrvls -> intervals = realloc(intrvls->intervals, 
+                                (--(intrvls->n))*sizeof(struct interval));
     return 0;
 }
