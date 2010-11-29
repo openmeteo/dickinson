@@ -241,12 +241,12 @@ DLLEXPORT int ts_delete_record(struct timeseries *ts, long_time_t tm)
     return ts_delete_item(ts, i);
 }
 
-DLLEXPORT void *ts_create(void)
+DLLEXPORT struct timeseries *ts_create(void)
 {
     struct timeseries *ts;
 
     if(!(ts = (struct timeseries *) malloc(sizeof(struct timeseries))))
-        return 0;
+        return NULL;
     ts->nrecords = 0;
     ts->data = NULL;
     ts->memblocksize = 0;
