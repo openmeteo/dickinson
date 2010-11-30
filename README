@@ -17,11 +17,29 @@ Unix
     - GNU C compiler (gcc)
     - GNU make
 
-    Installation instructions:
+    Compilation instructions:
 
     ./configure
     make
-    sudo make install
+
+    Among others, this will create a .libs subdirectory with the
+    compiled library. You may then run "sudo make install" to install
+    it system-wide, or, preferably, set the LD_LIBRARY_PATH
+    environment variable to include the .libs subdirectory in the
+    library search path. The second way is preferred, because
+    at the time of this writing dickinson changes too fast to trust a
+    system wide install. If you are running bash, you need to use
+
+    export LD_LIBRARY_PATH=`pwd`/.libs
+
+    but you need to remember to type this every time you run a shell.
+    Instead of that, what I actually do is prefix each command that
+    needs it; for example, to run a Django development server:
+
+    LD_LIBRARY_PATH=../dickinson/.libs ./manage.py runserver
+
+    This has the added benefit that it does not get confused if I have
+    many instances of openmeteo on my system.
 
 Windows
 -------
