@@ -221,9 +221,10 @@ DLLEXPORT struct ts_record *ts_delete_records(struct timeseries *ts,
 {
     struct ts_record *start = ts->data;
     struct ts_record *end   = ts->data + ts->nrecords - 1;
+    struct ts_record *r;
     if(!ts->nrecords || r1<start || r2<start || r1>end || r2>end || r2<r1)
         return NULL;
-    for(struct ts_record *r = r1; r <= r2; ++r) {
+    for(r = r1; r <= r2; ++r) {
         free(r->flags);
         r->flags = NULL;
     }
@@ -552,6 +553,9 @@ static void tsie_maybe_end_of_event(struct state_data *sd);
 static void tsie_start(struct state_data *sd)
 {
     struct timeseries *tmstmps;
+    struct timeseries **tp;
+    struct ts_record *r1;
+    struct ts_record *r2;
 
     sd->result = 0; /* This will always stay at zero until we find an error. */
 
@@ -565,13 +569,13 @@ static void tsie_start(struct state_data *sd)
         return;
     }
     tmstmps = sd->all_timestamps;
-    for(struct timeseries **tp = sd->ts->ts; tp < sd->ts->ts + sd->ts->n; ++tp)
+    for(tp = sd->ts->ts; tp < sd->ts->ts + sd->ts->n; ++tp)
         if((sd->result = ts_merge_anyway(tmstmps, *tp, sd->errstr))) {
             sd->state = tsie_end;
             return;
         }
-    struct ts_record *r1 = ts_get_next(tmstmps, sd->range.start_date);
-    struct ts_record *r2 = ts_get_prev(tmstmps, sd->range.end_date);
+    r1 = ts_get_next(tmstmps, sd->range.start_date);
+    r2 = ts_get_prev(tmstmps, sd->range.end_date);
     if(ts_delete_records(tmstmps, r1, r2)==NULL) {
         *(sd->errstr) = "Internal error in tsie_start";
         sd->result = 255;
