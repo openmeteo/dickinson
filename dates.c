@@ -490,6 +490,9 @@ long_time_t ydhms_diffl(int year1, int yday1, int hour1, int min1, int sec1,
 
 /* END YDMS_DIFFL FUNCTION */
 
+const DLLEXPORT long_time_t LONG_TIME_T_MIN = LLONG_MIN;
+const DLLEXPORT long_time_t LONG_TIME_T_MAX = LLONG_MAX;
+
 static int ydays[][12] = { {0,31,59,90,120,151,181,212,243,273,304,334},
                            {0,31,60,91,121,152,182,213,244,274,305,335}};
 

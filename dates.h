@@ -25,8 +25,6 @@
 #define is_leap_year(y) !((y)%400) || ((y)%100 && !((y)%4))
 
 typedef long long long_time_t;
-#define LONG_TIME_T_MAX LLONG_MAX
-#define LONG_TIME_T_MIN LLONG_MIN
 
 struct interval {
     long_time_t start_date;
@@ -50,6 +48,8 @@ extern DLLEXPORT void il_free(struct interval_list *intrvls);
 extern DLLEXPORT int il_append(struct interval_list *intrvls,
                                 long_time_t start_date, long_time_t end_date);
 extern DLLEXPORT int il_delete(struct interval_list *intrvls, int index);
+extern DLLEXPORT const long_time_t LONG_TIME_T_MIN;
+extern DLLEXPORT const long_time_t LONG_TIME_T_MAX;
 
 #ifndef HAVE_STRPTIME
     char *strptime(const char *buf, const char *fmt, struct tm *tm);
