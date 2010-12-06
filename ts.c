@@ -144,7 +144,6 @@ DLLEXPORT struct ts_record *ts_get_next(const struct timeseries *ts,
                                                         long_time_t timestamp)
 {
     struct ts_record *low, *high, *mid;
-    long_time_t diff;
 
     if(!ts->nrecords)
         return NULL;
@@ -152,10 +151,9 @@ DLLEXPORT struct ts_record *ts_get_next(const struct timeseries *ts,
     high = ts->data + (ts->nrecords - 1);
     while(low<=high) {
         mid = low + (high-low)/2;
-        diff = timestamp - mid->timestamp;
-        if(diff<0)
+        if(timestamp < mid->timestamp)
             high = mid-1;
-        else if(diff>0)
+        else if(timestamp > mid->timestamp)
             low = mid+1;
         else {
             low = mid;
@@ -269,11 +267,11 @@ DLLEXPORT int ts_length(const struct timeseries *ts)
 
 DLLEXPORT void ts_clear(struct timeseries *ts)
 {
-    int i;
+    struct ts_record *r;
 
-    for(i=0;i<ts->nrecords;++i){
-        free(ts->data[i].flags);
-        ts->data[i].flags = NULL;
+    for(r = ts->data; r < ts->data + ts->nrecords; ++r){
+        free(r->flags);
+        r->flags = NULL;
     }
     ts->nrecords = 0;
 }
@@ -487,7 +485,8 @@ DLLEXPORT void tsl_free(struct timeseries_list *tsl)
 
 DLLEXPORT int tsl_append(struct timeseries_list *tsl, struct timeseries *t)
 {
-    struct timeseries **p = realloc(tsl->ts, tsl->n + 1);
+    struct timeseries **p = realloc(tsl->ts,
+									(tsl->n + 1)*sizeof(struct timeseries *));
     if(p==NULL) return errno;
     tsl->ts = p;
     tsl->ts[(tsl->n)++] = t;
@@ -556,6 +555,7 @@ static void tsie_start(struct state_data *sd)
     struct timeseries **tp;
     struct ts_record *r1;
     struct ts_record *r2;
+    struct ts_record *end_record;
 
     sd->result = 0; /* This will always stay at zero until we find an error. */
 
@@ -576,19 +576,25 @@ static void tsie_start(struct state_data *sd)
         }
     r1 = ts_get_next(tmstmps, sd->range.start_date);
     r2 = ts_get_prev(tmstmps, sd->range.end_date);
-    if(ts_delete_records(tmstmps, r1, r2)==NULL) {
-        *(sd->errstr) = "Internal error in tsie_start";
-        sd->result = 255;
-        sd->state = tsie_end;
-        return;
-    }
-
+    end_record = tmstmps->data + (tmstmps->nrecords - 1);
+    if(r2<end_record)
+		if(ts_delete_records(tmstmps, r2+1, end_record)==NULL)
+			goto INTERN_ERROR;
+    if(r1>tmstmps->data)
+    	if(ts_delete_records(tmstmps, tmstmps->data, r1-1)==NULL)
+    		goto INTERN_ERROR;
     if(!tmstmps->nrecords) {
         sd->state = tsie_end;
         return;
     }
     sd->current_record = tmstmps->data;
     sd->state = tsie_not_in_event;
+    return;
+
+INTERN_ERROR:
+    *(sd->errstr) = "Internal error in tsie_start";
+    sd->result = 255;
+    sd->state = tsie_end;
 }
 
 static void tsie_not_in_event(struct state_data *sd)
@@ -596,7 +602,7 @@ static void tsie_not_in_event(struct state_data *sd)
     struct timeseries *tmstmps = sd->all_timestamps;
     while(sd->current_record < tmstmps->data + tmstmps->nrecords) {
         int i = num_of_timeseries_crossing_threshold(sd, sd->start_threshold);
-        if(i > sd->ntimeseries_start_threshold) {
+        if(i >= sd->ntimeseries_start_threshold) {
             sd->state = tsie_start_event;
             return;
         }
@@ -644,12 +650,11 @@ static void tsie_maybe_end_of_event(struct state_data *sd)
             sd->state = tsie_in_event;
             return;
         }
-        if(sd->current_record->timestamp - current_event->end_date >
+        if((++(sd->current_record))->timestamp - current_event->end_date >=
                                                         sd->time_separator) {
             sd->state = tsie_not_in_event;
             return;
         }
-        ++(sd->current_record);
     }
     sd->state = tsie_end;
 }

@@ -684,7 +684,8 @@ DLLEXPORT void il_free(struct interval_list *intrvls)
 DLLEXPORT int il_append(struct interval_list *intrvls, long_time_t start_date,
                                                         long_time_t end_date)
 {
-    struct interval *p = realloc(intrvls->intervals, intrvls->n + 1);
+    struct interval *p = realloc(intrvls->intervals,
+									(intrvls->n + 1)*sizeof(struct interval));
     if(p==NULL) return errno;
     intrvls->intervals = p;
     intrvls->intervals[intrvls->n].start_date = start_date;
