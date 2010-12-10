@@ -537,7 +537,7 @@ static int num_of_timeseries_crossing_threshold(struct state_data *sd,
     int sign = sd->reverse ? -1 : 1;
     for(tp = sd->ts->ts; tp < sd->ts->ts + sd->ts->n; ++tp) {
         struct ts_record *r = ts_get(*tp, sd->current_record->timestamp);
-        if(!r->null && sign*r->value > sign*threshold)
+        if(r && !r->null && sign*r->value > sign*threshold)
             ++result;
     }
     return result;
