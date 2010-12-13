@@ -415,54 +415,89 @@ DLLEXPORT int ts_merge_anyway(struct timeseries *ts1,
     return 0;
 }
 
-DLLEXPORT int ts_writeline(char **line, struct timeseries *ts, int index, int precision,
-                                                                char **errstr)
+DLLEXPORT int ts_writeline(struct ts_record *r, int precision, char *str,
+                                                            size_t max_length)
 {
-    int retval;
-    struct tm timestamp;
-    char datestring[40], valuestring[40], fmtstring[10];
-    static char outstr[256];
-    struct ts_record *r = ts->data+index;
+    int remaining_length = max_length;
+    int i;
+    struct tm tm_timestamp;
+    char fmtstring[10];
 
+    /* Date */
+    igmtime(r->timestamp, &tm_timestamp);
+    i = strftime(str, remaining_length, "%Y-%m-%d %H:%M,", &tm_timestamp);
+    if(i==0 || i==remaining_length)
+        return 0;
+    str += i;
+    remaining_length -= i;
+
+    /* Value */
     strcpy(fmtstring, "%G");
     if(precision != -9999) {
-        if(precision<0)
-            precision = 0;
-        if(precision>17) {
-            retval = ERANGE;
-            *errstr = "ts_writefile: precision may not be greater than 17";
-            goto END;
-        }
-        sprintf(fmtstring, "%%.%df", precision);
+        if(precision<0) precision = 0;
+        if(precision>17) precision = 17;
+        snprintf(fmtstring, 10, "%%.%df", precision);
     }
-    igmtime(r->timestamp, &timestamp);
-    if(!strftime(datestring,40,"%Y-%m-%d %H:%M",&timestamp)) {
-        retval = ERANGE;
-        *errstr = "Internal error in ts_writefile (1)";
-        goto END;
-    }
-    if(r->null)
-        *valuestring = '\0';
-    else if(sprintf(valuestring, fmtstring, r->value) >= 40) {
-        retval = ERANGE;
-        *errstr = "Internal error in ts_writefile (2)";
-        goto END;
-    }
-    if(strlen(datestring)+strlen(valuestring)+strlen(r->flags)+4 > 255){
-        retval = EINVAL;
-        *errstr = "ts_writefile: line too long (more than 255 characters)";
-        goto END;
-    }
-    if(sprintf(outstr,"%s,%s,%s\r\n",datestring, valuestring, r->flags) < 0) {
-        retval = EINVAL;
-        *errstr = "ts_writefile: sprintf error (make sure flags are ASCII)";
-        goto END;
-    }
-    *line = outstr;
-    retval = 0;
+    i = r->null ? 0 : snprintf(str, remaining_length, fmtstring, r->value);
+    if(i>=remaining_length)
+        return 0;
+    str += i;
+    remaining_length -= i;
+    /* Comma */
+    if(remaining_length<2)
+        return 0;
+    *(str++) = ',';
+    --remaining_length;
 
-END:
-    return retval;
+    /* Flags */
+    if((i = strlen(r->flags)) >= remaining_length)
+        return 0;
+    strcpy(str, r->flags);
+    str += i;
+    remaining_length -= i;
+
+    /* Line terminator */
+    if(remaining_length<3)
+        return 0;
+    strcpy(str, "\r\n");
+    str += 2;
+    remaining_length -= 2;
+
+    return max_length - remaining_length;
+}
+
+DLLEXPORT char *ts_write(struct timeseries *ts, int precision,
+                long_time_t start_date, long_time_t end_date, char **errstr)
+{
+    struct ts_record *r = ts_get_next(ts, start_date);
+    struct ts_record *end = ts_get_prev(ts, end_date);
+    size_t blocksize = 0;
+    char *result = NULL;
+    char *p;
+    if(!r || !end)
+        return result;
+    if((result = malloc(blocksize += CHUNKSIZE))==NULL)
+        goto ERROR;
+    p = result;
+    while(r<end) {
+        int i = ts_writeline(r, precision, p, blocksize-(p-result));
+        if(!i) {
+            char *nresult = realloc(result, blocksize += CHUNKSIZE);
+            if(!nresult)
+                goto ERROR;
+            p = nresult + (p - result);
+            result = nresult;
+            continue;
+        }
+        p += i;
+        ++r;
+        continue;
+    }
+
+ERROR:
+    free(result);
+    *errstr = strerror(errno);
+    return NULL;
 }
 
 DLLEXPORT struct timeseries_list *tsl_create(void)

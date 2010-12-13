@@ -80,8 +80,10 @@ extern DLLEXPORT int ts_merge(struct timeseries *ts1, struct timeseries *ts2,
                                                                 char **errstr);
 extern DLLEXPORT int ts_merge_anyway(struct timeseries *ts1,
                                   const struct timeseries *ts2, char **errstr);
-extern DLLEXPORT int ts_writeline(char **line, struct timeseries *ts, int index,
-    int precision, char **errstr);
+extern DLLEXPORT int ts_writeline(struct ts_record *r, int precision, char *str,
+                                                        size_t max_length);
+extern DLLEXPORT char *ts_write(struct timeseries *ts, int precision,
+                long_time_t start_date, long_time_t end_date, char **errstr);
 extern DLLEXPORT struct timeseries_list *tsl_create(void);
 extern DLLEXPORT void tsl_free(struct timeseries_list *tsl);
 extern DLLEXPORT int tsl_append(struct timeseries_list *tsl, struct timeseries
