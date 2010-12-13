@@ -47,3 +47,7 @@ char *strdup(const char *s)
 }
 
 #endif
+
+DLLEXPORT void freemem(void *p) {
+    free(p);
+}

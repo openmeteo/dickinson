@@ -18,8 +18,12 @@
 
 #define _STRINGS_H
 
+#include "platform.h"
+
 /* Strips leading and trailing whitespace from s inplace, and returns s. */
 extern char *strip(char *s);
+
+extern DLLEXPORT void freemem(void *p);
 
 /* man strdup. */
 #if defined(WIN32)

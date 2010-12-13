@@ -474,12 +474,13 @@ DLLEXPORT char *ts_write(struct timeseries *ts, int precision,
     size_t blocksize = 0;
     char *result = NULL;
     char *p;
+    *errstr = NULL;
     if(!r || !end)
         return result;
     if((result = malloc(blocksize += CHUNKSIZE))==NULL)
         goto ERROR;
     p = result;
-    while(r<end) {
+    while(r<=end) {
         int i = ts_writeline(r, precision, p, blocksize-(p-result));
         if(!i) {
             char *nresult = realloc(result, blocksize += CHUNKSIZE);
@@ -493,6 +494,7 @@ DLLEXPORT char *ts_write(struct timeseries *ts, int precision,
         ++r;
         continue;
     }
+    return result;
 
 ERROR:
     free(result);
@@ -547,7 +549,7 @@ DLLEXPORT double ts_min(struct timeseries *ts, long_time_t start_date,
     struct ts_record *end = ts_get_prev(ts, end_date);
     if(!r || !end)
         return result;
-    while(r<end) {
+    while(r<=end) {
         if(!(r->null))
             result = isnan(result) ? r->value : fmin(result, r->value);
         ++r;
@@ -563,7 +565,7 @@ DLLEXPORT double ts_max(struct timeseries *ts, long_time_t start_date,
     struct ts_record *end = ts_get_prev(ts, end_date);
     if(!r || !end)
         return result;
-    while(r<end) {
+    while(r<=end) {
         if(!(r->null))
             result = isnan(result) ? r->value : fmax(result, r->value);
         ++r;
@@ -580,7 +582,7 @@ DLLEXPORT double ts_average(struct timeseries *ts, long_time_t start_date,
     int divider = 0;
     if(!r || !end)
         return NAN;
-    while(r<end) {
+    while(r<=end) {
         if(!(r->null)) {
             sum += r->value;
             ++divider;
@@ -598,7 +600,7 @@ DLLEXPORT double ts_sum(struct timeseries *ts, long_time_t start_date,
     struct ts_record *end = ts_get_prev(ts, end_date);
     if(!r || !end)
         return result;
-    while(r<end) {
+    while(r<=end) {
         if(!(r->null))
             result += r->value;
         ++r;
