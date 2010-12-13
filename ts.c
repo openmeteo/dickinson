@@ -20,6 +20,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <time.h>
+#include <math.h>
 #include "strings.h"
 #include "csv.h"
 #include "dates.h"
@@ -501,6 +502,73 @@ DLLEXPORT int tsl_delete(struct timeseries_list *tsl, int index)
                             (tsl->n - index - 1)*sizeof(struct timeseries));
     tsl->ts = realloc(tsl->ts, (--(tsl->n))*sizeof(struct timeseries));
     return 0;
+}
+
+DLLEXPORT double ts_min(struct timeseries *ts, long_time_t start_date,
+                                                        long_time_t end_date)
+{
+    double result = NAN;
+    struct ts_record *r = ts_get_next(ts, start_date);
+    struct ts_record *end = ts_get_prev(ts, end_date);
+    if(!r || !end)
+        return result;
+    while(r<end) {
+        if(!(r->null))
+            result = isnan(result) ? r->value : fmin(result, r->value);
+        ++r;
+    }
+    return result;
+}
+
+DLLEXPORT double ts_max(struct timeseries *ts, long_time_t start_date,
+                                                        long_time_t end_date)
+{
+    double result = NAN;
+    struct ts_record *r = ts_get_next(ts, start_date);
+    struct ts_record *end = ts_get_prev(ts, end_date);
+    if(!r || !end)
+        return result;
+    while(r<end) {
+        if(!(r->null))
+            result = isnan(result) ? r->value : fmax(result, r->value);
+        ++r;
+    }
+    return result;
+}
+
+DLLEXPORT double ts_average(struct timeseries *ts, long_time_t start_date,
+                                                        long_time_t end_date)
+{
+    double sum = 0.0;
+    struct ts_record *r = ts_get_next(ts, start_date);
+    struct ts_record *end = ts_get_prev(ts, end_date);
+    int divider = 0;
+    if(!r || !end)
+        return NAN;
+    while(r<end) {
+        if(!(r->null)) {
+            sum += r->value;
+            ++divider;
+        }
+        ++r;
+    }
+    return divider ? sum/divider : NAN;
+}
+
+DLLEXPORT double ts_sum(struct timeseries *ts, long_time_t start_date,
+                                                        long_time_t end_date)
+{
+    double result = 0;
+    struct ts_record *r = ts_get_next(ts, start_date);
+    struct ts_record *end = ts_get_prev(ts, end_date);
+    if(!r || !end)
+        return result;
+    while(r<end) {
+        if(!(r->null))
+            result += r->value;
+        ++r;
+    }
+    return result;
 }
 
 /* ts_identify_events */

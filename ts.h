@@ -87,6 +87,14 @@ extern DLLEXPORT void tsl_free(struct timeseries_list *tsl);
 extern DLLEXPORT int tsl_append(struct timeseries_list *tsl, struct timeseries
                                                                     *t);
 extern DLLEXPORT int tsl_delete(struct timeseries_list *tsl, int index);
+extern DLLEXPORT double ts_min(struct timeseries *ts, long_time_t start_date,
+                                                        long_time_t end_date);
+extern DLLEXPORT double ts_max(struct timeseries *ts, long_time_t start_date,
+                                                        long_time_t end_date);
+extern DLLEXPORT double ts_average(struct timeseries *ts,
+                                long_time_t start_date, long_time_t end_date);
+extern DLLEXPORT double ts_sum(struct timeseries *ts, long_time_t start_date,
+                                                        long_time_t end_date);
 extern DLLEXPORT int ts_identify_events(struct timeseries_list *ts,
     struct interval range, int reverse,
     double start_threshold, double end_threshold,
