@@ -475,7 +475,7 @@ DLLEXPORT char *ts_write(struct timeseries *ts, int precision,
     char *result = NULL;
     char *p;
     *errstr = NULL;
-    if(!r || !end)
+    if(!r || !end || r>end)
         return result;
     if((result = malloc(blocksize += CHUNKSIZE))==NULL)
         goto ERROR;
