@@ -595,14 +595,14 @@ DLLEXPORT double ts_average(struct timeseries *ts, long_time_t start_date,
 DLLEXPORT double ts_sum(struct timeseries *ts, long_time_t start_date,
                                                         long_time_t end_date)
 {
-    double result = 0;
+    double result = NAN;
     struct ts_record *r = ts_get_next(ts, start_date);
     struct ts_record *end = ts_get_prev(ts, end_date);
     if(!r || !end)
-        return result;
+        return NAN;
     while(r<=end) {
         if(!(r->null))
-            result += r->value;
+            result = isnan(result) ? r->value : result + r->value;
         ++r;
     }
     return result;
