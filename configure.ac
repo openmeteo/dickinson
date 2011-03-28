@@ -4,6 +4,7 @@ AC_PROG_CC
 AC_PROG_CC_C99
 AC_PROG_LIBTOOL
 AC_CONFIG_FILES([Makefile])
-AC_CHECK_FUNCS([strdup strptime])
+AC_CHECK_FUNCS([strdup strptime snprintf])
+AC_CHECK_DECLS([isnan, fmin, fmax, NAN], [], [], [[#include <math.h>]])
 AC_DEFINE([_XOPEN_SOURCE], [500], ["Required for strdup and strptime"])
 AC_OUTPUT
