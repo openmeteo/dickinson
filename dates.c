@@ -515,7 +515,7 @@ void add_minutes(struct tm *tm, int mins)
         tm->tm_min -= 60;
         if(++(tm->tm_hour)>23) {
             tm->tm_hour = 0;
-            if(++(tm->tm_mday)>month_days(tm->tm_mon, tm->tm_year)) {
+            if(++(tm->tm_mday)>month_days(tm->tm_mon, tm->tm_year+TM_YEAR_BASE)) {
                 tm->tm_mday = 1;
                 if(++(tm->tm_mon)>11) {
                     tm->tm_mon = 0;
@@ -533,7 +533,7 @@ void add_minutes(struct tm *tm, int mins)
                     tm->tm_mon = 11;
                     --(tm->tm_year);
                 }
-                tm->tm_mday = month_days(tm->tm_mon, tm->tm_year);
+                tm->tm_mday = month_days(tm->tm_mon, tm->tm_year+TM_YEAR_BASE);
             }
         }
     }
@@ -571,7 +571,7 @@ int tmcmp(struct tm *tm1, struct tm *tm2)
  * implementation).
  */
 static void fix_tm(struct tm *tm) {
-    tm->tm_yday = year_days(tm->tm_mon, tm->tm_year) + tm->tm_mday - 1;
+    tm->tm_yday = year_days(tm->tm_mon, tm->tm_year+TM_YEAR_BASE) + tm->tm_mday - 1;
 }
 
 int parsedatestring(const char *s, struct tm *tm, char **errmsg)

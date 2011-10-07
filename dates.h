@@ -36,6 +36,9 @@ struct interval_list {
     int n;
 };
 
+/* Caution: year argument in month_days is
+   the actual year, not the tm_year (years from
+   1900). e.g. for 2011, enter 2011 */
 extern int month_days(int mon, int year);
 extern void add_minutes(struct tm *tm, int mins);
 extern int tmcmp(struct tm *tm1, struct tm *tm2);
