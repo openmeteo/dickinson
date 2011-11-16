@@ -76,6 +76,10 @@ extern DLLEXPORT int ts_set_item(struct timeseries *ts, int index,
     int null, double value, const char *flags, char **errstr);
 extern DLLEXPORT int ts_readline(char *line, struct timeseries *ts,
                                                                 char **errstr);
+extern DLLEXPORT int ts_readfile(FILE *fp, struct timeseries *ts, int *errline,
+                                                                char **errstr);
+extern DLLEXPORT int ts_readfromstring(char *string, struct timeseries *ts, 
+                                                  int *errline, char **errstr);
 extern DLLEXPORT int ts_merge(struct timeseries *ts1, struct timeseries *ts2, 
                                                                 char **errstr);
 extern DLLEXPORT int ts_merge_anyway(struct timeseries *ts1,

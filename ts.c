@@ -326,6 +326,97 @@ INVSYNTAX:
     goto END;
 }
 
+DLLEXPORT int ts_readfile(FILE* fp, struct timeseries *ts, int *errline, char **errstr)
+{
+    char buf[256];
+    int lerrline;
+    int retval;
+
+    lerrline = 0;
+    while(fgets(buf, 256, fp)!=NULL) {
+        ++lerrline;
+        
+        /* Check for file or line-too-long errors. */
+        if(ferror(fp)) goto GENFAIL;
+        buf[255] = '\0';
+        if (strchr(buf, '\n')==NULL) {
+            *errstr = "Line too long or unterminated";
+            retval = EOVERFLOW;
+            goto END;
+        }
+
+        retval = ts_readline(buf, ts, errstr); 
+        if(retval) goto END;
+    }
+
+    retval = 0;
+
+END:
+    if(retval) *errline = lerrline;
+    return retval;
+
+GENFAIL:
+    retval = errno;
+    *errstr = strerror(errno);
+    goto END;
+
+}
+
+DLLEXPORT int ts_readfromstring(char *string, struct timeseries *ts, int *errline, char **errstr)
+{
+    char *buf;
+    char *buf_s, *buf_e;
+    int lerrline;
+    int retval;
+
+    buf = (char*) malloc(256*sizeof(char));
+    lerrline = 0;
+    buf_s=buf;
+    buf_e = buf_s + 256;
+    while(1) {
+        
+        /* Check for line-too-long errors. */
+        if(buf==buf_e) {
+            *errstr = "Line too long or unterminated";
+            retval = EOVERFLOW;
+            goto END;
+        }
+
+        if(*string=='\n'||*string=='\r'||*string=='\0') {
+            if(*string=='\0')
+                if(buf==buf_s)
+                    break;
+            *buf='\0';
+            buf=buf_s;
+            ++lerrline;
+            retval = ts_readline(buf, ts, errstr); 
+            if(retval) goto END;
+            
+            if(*string=='\0') break;
+
+            if(*string=='\n') {
+                if(*(++string)=='\r')
+                    string++;
+            }
+            else if(*string=='\r') {
+                if(*(++string)=='\n')
+                    string++;
+            }
+            continue;
+        }
+        *(buf++) = *(string++);
+    }
+
+    retval = 0;
+
+END:
+    buf=buf_s;
+    free(buf);
+    if(retval) *errline = lerrline;
+    return retval;
+
+}
+
 DLLEXPORT int ts_merge(struct timeseries *ts1, struct timeseries *ts2,
                             char **errstr)
 {
