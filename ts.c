@@ -27,6 +27,18 @@
 #include "ts.h"
 #include "platform.h"
 
+/* Added the following lines in order to compile in VC++ 2010
+   may need cleanup, Stefanos Kozanis 2012-02-16 */
+#ifdef WIN32
+#include <float.h>
+#define isnan(x) (x!=x)
+#define NAN 0x7ff8000000000000
+#define fmax(a,b) (a>b?a:b)
+#define fmin(a,b) (a<b?a:b)
+#define snprintf _snprintf
+#endif
+
+
 /* Makes sure that the data block allocated for the timeseries data is large
  * enough to hold the specified number of records. If not, it reallocs it.
  * Returns nonzero on insufficient memory.
