@@ -27,6 +27,9 @@
     <ClCompile Include="ts.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="dl.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="csv.h">
@@ -39,6 +42,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ts.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="dl.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
