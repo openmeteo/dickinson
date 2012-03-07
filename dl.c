@@ -175,7 +175,6 @@ DLLEXPORT long_time_t *dl_delete_records(struct datetimelist *dl,
 {
     long_time_t *start = dl->data;
     long_time_t *end   = dl->data + dl->nrecords - 1;
-    long_time_t *r;
     if(!dl->nrecords || r1<start || r2<start || r1>end || r2>end || r2<r1)
         return NULL;
     memmove(r1, r2+1, (end-r2)*sizeof(long_time_t));
