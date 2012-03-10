@@ -54,6 +54,11 @@ Windows
     - Start MS Visual C++
     - Choose File, Open, Project/Solution
     - Select the file Dickinson.vcxproj
+    - Change solution configuration from top toolbar to "Release" if
+      it is "Debug".
+    - Check configuration for static link. (Alt+F7, Configuration
+      Properties, C/C++, Code Generation, Runtime library for
+      "Release" should be "Multi-threaded (/MT)")
     - Right-click on the Dickinson project and select Build
     - If it asks you, tell it where to save the "solution" file (we don't store
       it, let it recreate it each time).
