@@ -19,6 +19,7 @@
 #include <errno.h>
 #include <string.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <time.h>
 #include <math.h>
 #include "strings.h"
@@ -27,15 +28,13 @@
 #include "ts.h"
 #include "platform.h"
 
-/* Added the following lines in order to compile in VC++ 2010
-   may need cleanup, Stefanos Kozanis 2012-02-16 */
 #ifdef WIN32
-#include <float.h>
-#define isnan(x) (x!=x)
-#define NAN 0x7ff8000000000000
-#define fmax(a,b) (a>b?a:b)
-#define fmin(a,b) (a<b?a:b)
-#define snprintf _snprintf
+    static const unsigned long __nan[2] = {0xffffffff, 0x7fffffff};
+    #define NAN (*(const float *) __nan)
+	#define fmax max
+	#define fmin min
+	#define isnan _isnan
+	#define snprintf _snprintf
 #endif
 
 
