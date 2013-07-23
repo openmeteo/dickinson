@@ -1,7 +1,3 @@
-============================
-The Dickinson shared library
-============================
-
 Dickinson is a C library containing various utilities, mainly for time
 series operations. The Python pthelma library is partly a front-end to
 Dickinson.
