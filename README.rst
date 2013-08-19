@@ -33,7 +33,7 @@ timeseries, find records with specific timestamps, and all that,
 handling memory allocation automatically. The library also contains
 some useful CSV functionality.
 
-For more information, see the documentation in the ``docs`` subdirectory
+For more information, see the documentation in the ``doc`` subdirectory
 or online_.
 
 .. _online: http://dickinson.readthedocs.org/
