@@ -92,7 +92,8 @@ am__uninstall_files_from_dir = { \
 am__installdirs = "$(DESTDIR)$(libdir)" "$(DESTDIR)$(includedir)"
 LTLIBRARIES = $(lib_LTLIBRARIES)
 libdickinson_la_LIBADD =
-am_libdickinson_la_OBJECTS = ts.lo dl.lo strings.lo dates.lo csv.lo
+am_libdickinson_la_OBJECTS = ts.lo dl.lo strings.lo dates.lo csv.lo \
+	misc.lo
 libdickinson_la_OBJECTS = $(am_libdickinson_la_OBJECTS)
 libdickinson_la_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
@@ -237,7 +238,7 @@ top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 lib_LTLIBRARIES = libdickinson.la
-libdickinson_la_SOURCES = ts.c dl.c strings.c dates.c csv.c
+libdickinson_la_SOURCES = ts.c dl.c strings.c dates.c csv.c misc.c
 include_HEADERS = ts.h dl.h strings.h dates.h csv.h platform.h
 AM_CFLAGS = -Wall
 libdickinson_la_LDFLAGS = -no-undefined
@@ -319,6 +320,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/csv.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/dates.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/dl.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/misc.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/strings.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ts.Plo@am__quote@
 
