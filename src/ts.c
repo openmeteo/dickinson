@@ -31,10 +31,8 @@
 #ifdef WIN32
     static const unsigned long __nan[2] = {0xffffffff, 0x7fffffff};
     #define NAN (*(const float *) __nan)
-	#define fmax max
-	#define fmin min
-	#define isnan _isnan
-	#define snprintf _snprintf
+    #define isnan _isnan
+    #define snprintf _snprintf
 #endif
 
 

@@ -242,6 +242,7 @@ top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 AUTOMAKE_OPTIONS = foreign
 SUBDIRS = src
+libdickinson_la_LDFLAGS = -no-undefined
 all: all-recursive
 
 .SUFFIXES:
