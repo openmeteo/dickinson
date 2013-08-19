@@ -28,14 +28,6 @@
 #include "ts.h"
 #include "platform.h"
 
-#ifdef WIN32
-    static const unsigned long __nan[2] = {0xffffffff, 0x7fffffff};
-    #define NAN (*(const float *) __nan)
-    #define isnan _isnan
-    #define snprintf _snprintf
-#endif
-
-
 /* Makes sure that the data block allocated for the timeseries data is large
  * enough to hold the specified number of records. If not, it reallocs it.
  * Returns nonzero on insufficient memory.
