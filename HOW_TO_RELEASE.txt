@@ -2,6 +2,7 @@ The dickinson version has the form
 
     major.minor.micro
 
+
 Here's how to release a new minor version X.Y.0:
 
     1. Create a branch:
@@ -18,7 +19,14 @@ Here's how to release a new minor version X.Y.0:
 
           git tag X.Y.0
 
-    5. Upload a .tar.gz file and a compiled Windows DLL file.
+    5. Push the branch:
+
+          git push origin X.Y
+
+    6. Create a new release in github.
+
+    7. Upload a compiled Windows DLL file.
+
 
 Here's how to release a new micro X.Y.Z version:
 
@@ -38,6 +46,10 @@ Here's how to release a new micro X.Y.Z version:
     
           git tag X.Y.Z
 
-    6. Upload a .tar.gz file and a compiled Windows DLL file.
+    6. Push.
 
-    7. Also apply the bug fixes to the master branch.
+    7. Create a new release in github.
+
+    8. Upload a compiled Windows DLL file.
+
+    9. Also apply the bug fixes to the master branch.
