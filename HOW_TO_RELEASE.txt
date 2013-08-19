@@ -7,7 +7,7 @@ Here's how to release a new minor version X.Y.0:
 
     1. Create a branch:
 
-          git branch X.Y
+          git checkout -b X.Y
 
     2. In src/misc.c, change the content of the dickinson_version
        variable so that it has the value "X.Y.0" (should be "dev"
