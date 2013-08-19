@@ -1,0 +1,43 @@
+The dickinson version has the form
+
+    major.minor.micro
+
+Here's how to release a new minor version X.Y.0:
+
+    1. Create a branch:
+
+          git branch X.Y
+
+    2. In src/misc.c, change the content of the dickinson_version
+       variable so that it has the value "X.Y.0" (should be "dev"
+       before you change it).
+
+    3. Commit the change.
+
+    4. Create a tag:
+
+          git tag X.Y.0
+
+    5. Upload a .tar.gz file and a compiled Windows DLL file.
+
+Here's how to release a new micro X.Y.Z version:
+
+    1. Switch to the X.Y branch:
+
+          git checkout X.Y
+
+    2. Make the required bug fixes and commit them.
+
+    3. In src/misc.c, change the content of the dickinson_version
+       variable so that it has the value "X.Y.Z" (should be
+       "X.Y.Q" where Q=Z-1).
+
+    4. Commit the change.
+
+    5. Create a tag:
+    
+          git tag X.Y.Z
+
+    6. Upload a .tar.gz file and a compiled Windows DLL file.
+
+    7. Also apply the bug fixes to the master branch.
