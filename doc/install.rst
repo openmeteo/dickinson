@@ -34,17 +34,24 @@ needs it; for example, to run a Django development server::
 This has the added benefit that it does not get confused if I have
 many instances of Dickinson on my system.
 
-Windows
--------
+Windows binaries
+----------------
+
+Download the DLL from http://openmeteo.org/downloads/, rename it to
+``dickinson.dll`` and put it in ``C:\Windows\System32``. Note that we
+only make 32-bit DLLs.
+
+Compiling on Windows
+--------------------
 
 Dickinson has only been tested in 32-bit Windows.
 
 Requirements:
 
 * `MinGW compiler with MSYS shell`_ (go to Downloads, Installer,
-  mingw-get-inst, and download the latest min-get-inst executable; run
-  it and tell it to install itself, making sure to include the MSYS
-  shell).
+  mingw-get-inst, and download the latest ``min-get-inst`` executable;
+  run it and tell it to install itself, making sure to include the
+  MSYS shell).
 
 Put a copy of dickinson inside the MSYS shell user's home directory
 (something like ``C:\MinGW\msys\1.0\home\user``), then start the MSYS
