@@ -37,8 +37,25 @@ many instances of Dickinson on my system.
 Windows
 -------
 
-It's currently broken and doesn't compile in Windows. If you are an
-``autoconf`` expert, you might be able to help. We just can't
-determine why `it doesn't create a DLL`_.
+Dickinson has only been tested in 32-bit Windows.
 
-.. _it doesn't create a DLL: http://stackoverflow.com/questions/17813748/how-can-i-tell-autoconf-to-create-a-windows-dll
+Requirements:
+
+* `MinGW compiler with MSYS shell`_ (go to Downloads, Installer,
+  mingw-get-inst, and download the latest min-get-inst executable; run
+  it and tell it to install itself, making sure to include the MSYS
+  shell).
+
+Put a copy of dickinson inside the MSYS shell user's home directory
+(something like ``C:\MinGW\msys\1.0\home\user``), then start the MSYS
+shell from the Windows menu, ``MinGW`` program folder. Then::
+
+   cd dickinson
+   ./configure
+   make
+
+This will leave a ``libdickinson-0.dll`` file in the
+``dickinson\src\.libs`` directory; copy it to
+``C:\Windows\System32\dickinson.dll``.
+
+.. _MinGW compiler with MSYS shell: http://mingw.org/
