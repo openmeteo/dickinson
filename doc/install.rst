@@ -37,9 +37,10 @@ many instances of Dickinson on my system.
 Windows binaries
 ----------------
 
-Download the DLL from http://openmeteo.org/downloads/, rename it to
-``dickinson.dll`` and put it in ``C:\Windows\System32``. Note that we
-only make 32-bit DLLs.
+Download the DLL from
+http://github.com/openmeteo/dickinson/releases/latest/, rename it to
+``dickinson.dll`` and put it in ``C:\Windows\System32`` or another
+directory in the path. Note that we only make 32-bit DLLs.
 
 Compiling on Windows
 --------------------
@@ -48,21 +49,24 @@ Dickinson has only been tested in 32-bit Windows.
 
 Requirements:
 
-* `MinGW compiler with MSYS shell`_ (go to Downloads, Installer,
-  mingw-get-inst, and download the latest ``min-get-inst`` executable;
-  run it and tell it to install itself, making sure to include the
-  MSYS shell).
+* `MinGW compiler with MSYS shell`_ (click the "Download Installer"
+  button on the right; run the downloaded installer and ask it to
+  install itself; I usually don't install the UI, only the CLI; then I
+  go to :file:`C:\\MinGW\\bin` and tell it ``mingw-get install
+  mingw32-gcc`` and ``mingw-get install msys``; note: to uninstall
+  MinGW just delete the directory :file:`C:\\MinGW`).
 
 Put a copy of dickinson inside the MSYS shell user's home directory
-(something like ``C:\MinGW\msys\1.0\home\user``), then start the MSYS
-shell from the Windows menu, ``MinGW`` program folder. Then::
+(something like :file:`C:\\MinGW\\msys\\1.0\\home\\user`), then start the
+MSYS shell from :file:`C:\\MinGW\\msys\\1.0\\msys.bat`. Then::
 
+   export PATH=/c/MinGW/bin:$PATH
    cd dickinson
-   ./configure
+   CC="gcc -static-libgcc" ./configure
    make
 
-This will leave a ``libdickinson-0.dll`` file in the
-``dickinson\src\.libs`` directory; copy it to
-``C:\Windows\System32\dickinson.dll``.
+This will leave a :file:`libdickinson-0.dll` file in the
+:file:`dickinson/src/.libs` directory; rename it to
+:file:`dickinson.dll`.
 
 .. _MinGW compiler with MSYS shell: http://mingw.org/
