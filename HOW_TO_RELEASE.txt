@@ -19,9 +19,10 @@ Here's how to release a new minor version X.Y.0:
 
           git tag X.Y.0
 
-    5. Push the branch:
+    5. Push the branch and the tag:
 
           git push origin X.Y
+          git push origin X.Y.0
 
     6. Create a new release in github.
 
@@ -46,7 +47,10 @@ Here's how to release a new micro X.Y.Z version:
     
           git tag X.Y.Z
 
-    6. Push.
+    6. Push, including the tag:
+
+          git push
+          git push origin X.Y.Z
 
     7. Create a new release in github.
 
