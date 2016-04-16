@@ -18,4 +18,4 @@
 
 #include "platform.h"
 
-const DLLEXPORT char *dickinson_version = "0.2.0";
+const DLLEXPORT char *dickinson_version = "0.2.1";
