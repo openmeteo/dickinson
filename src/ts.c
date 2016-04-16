@@ -28,23 +28,29 @@
 #include "ts.h"
 #include "platform.h"
 
-/* Makes sure that the data block allocated for the timeseries data is large
- * enough to hold the specified number of records. If not, it reallocs it.
- * Returns nonzero on insufficient memory.
+/* Makes sure that the data block allocated for the timeseries data is of
+ * a size suitable for the specified number of records, and if necessary it
+ * reallocs it in order to enlarge it or shrink it. Returns nonzero on
+ * insufficient memory.
  */
-#define CHUNKSIZE 262144
+#define RESERVEDSIZE 100000
 static int check_block_size(struct timeseries *ts, int nrecords)
 {
     void *p;
-    size_t s;
+    size_t required_size, new_size;
 
-    while(ts->memblocksize < nrecords*sizeof(struct ts_record)) {
-        s = ts->memblocksize + CHUNKSIZE;
-        p = realloc(ts->data, s);
-        if(!p) return errno;
-        ts->data = p;
-        ts->memblocksize = s;
+    required_size = nrecords * sizeof(struct ts_record);
+    if((ts->memblocksize >= required_size)
+            && (ts->memblocksize < required_size + 2 * RESERVEDSIZE)) {
+        return 0;
     }
+
+    new_size = required_size + RESERVEDSIZE;
+    p = realloc(ts->data, new_size);
+    if(!p)
+        return errno;
+    ts->data = p;
+    ts->memblocksize = new_size;
     return 0;
 }
 
@@ -219,6 +225,7 @@ DLLEXPORT int ts_delete_item(struct timeseries *ts, int index)
 DLLEXPORT struct ts_record *ts_delete_records(struct timeseries *ts,
                                     struct ts_record *r1, struct ts_record *r2)
 {
+    int i;
     struct ts_record *start = ts->data;
     struct ts_record *end   = ts->data + ts->nrecords - 1;
     struct ts_record *r;
@@ -230,6 +237,7 @@ DLLEXPORT struct ts_record *ts_delete_records(struct timeseries *ts,
     }
     memmove(r1, r2+1, (end-r2)*sizeof(struct ts_record));
     ts->nrecords -= r2-r1+1;
+    i = check_block_size(ts, ts->nrecords); if(i) return NULL;
     return r1;
 }
 
@@ -276,6 +284,7 @@ DLLEXPORT void ts_clear(struct timeseries *ts)
         r->flags = NULL;
     }
     ts->nrecords = 0;
+    check_block_size(ts, ts->nrecords);
 }
 
 DLLEXPORT struct ts_record ts_get_item(struct timeseries *ts, int index)
@@ -565,13 +574,13 @@ DLLEXPORT char *ts_write(struct timeseries *ts, int precision,
     *errstr = NULL;
     if(!r || !end || r>end)
         return result;
-    if((result = malloc(blocksize += CHUNKSIZE))==NULL)
+    if((result = malloc(blocksize += RESERVEDSIZE))==NULL)
         goto ERROR;
     p = result;
     while(r<=end) {
         int i = ts_writeline(r, precision, p, blocksize-(p-result));
         if(!i) {
-            char *nresult = realloc(result, blocksize += CHUNKSIZE);
+            char *nresult = realloc(result, blocksize += RESERVEDSIZE);
             if(!nresult)
                 goto ERROR;
             p = nresult + (p - result);
